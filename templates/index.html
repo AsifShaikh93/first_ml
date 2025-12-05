@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diabetes Prediction</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    
+
+<h3> The sample ML model built using RandomForestClassifier, built form ec2 instance, deployed into kyma stage, exposed using APIRule V2. How good it would be if it was built using deep learning models like ANN, CNN, or RNN or using transfer learning model on top of state of the art models opensource available. ! WORK IN PROGRESS ! </h3><br><br><br>
+
+<form id="predictForm"> 
+    <input type="number" name="Pregnancies" placeholder="Pregnancies" required><br> 
+    <input type="number" name="Glucose" placeholder="Glucose" required><br> 
+    <input type="number" name="BloodPressure" placeholder="Blood Pressure" required><br> 
+    <input type="number" name="BMI" placeholder="BMI" required><br> 
+    <input type="number" name="Age" placeholder="Age" required><br> 
+    <button type="submit">Predict</button> 
+</form>
+
+
+<h3 id="result"></h3>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 import joblib
+import os
 
 url="https://raw.githubusercontent.com/plotly/datasets/refs/heads/master/diabetes.csv"
 
@@ -17,5 +18,17 @@ X_train, X_test, y_train, y_test= train_test_split( X, y, test_size=0.2, random_
 model= RandomForestClassifier()
 model.fit(X_train, y_train)
 
-joblib.dump(model, "diabetes_model.pkl")
-print("model saved as diabetes_model.pkl")
+MODEL_DIR = "/mnt/models"
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+MODEL_PATH = os.path.join(MODEL_DIR, "diabetes_model.pkl")
+
+# === 5) Save model to PVC ===
+joblib.dump(model, MODEL_PATH)
+print(f"Model saved at {MODEL_PATH}")
+
+# === 6) Optional: Verify model exists ===
+if os.path.exists(MODEL_PATH):
+    print("Verified: model file exists in PVC.")
+else:
+    print("ERROR: model file not found after saving!")

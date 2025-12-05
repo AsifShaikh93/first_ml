@@ -1,0 +1,13 @@
+# .dockerignore
+.asif
+__pycache__
+*.pyc
+*.log
+.git
+.gitignore
+data/
+*.csv
+*.h5
+venv
+.env
+

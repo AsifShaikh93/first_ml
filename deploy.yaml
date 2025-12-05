@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diabetes-api-ml
+  labels:
+    app: diabetes-api-ml
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: diabetes-api-ml
+  template:
+    metadata:
+      labels:
+        app: diabetes-api-ml
+    spec:
+      containers:
+      - name: diabetes-api
+        image: asif1993/second_ml:v12
+        ports:
+        - containerPort: 8000
+        imagePullPolicy: IfNotPresent
+        volumeMounts:                   # <--- added
+        - name: diabetes-model-volume
+          mountPath: /mnt/models
+      volumes:                          # <--- added
+      - name: diabetes-model-volume
+        persistentVolumeClaim:
+          claimName: diabetes-model-pvc  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diabetes-api-ml-service
+  namespace: asif-test  
+spec:
+  selector:
+    app: diabetes-api-ml
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer

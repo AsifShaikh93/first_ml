@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: model-debug
+  namespace: asif-test
+spec:
+  containers:
+    - name: debug
+      image: python:3.11-slim
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: diabetes-model-volume
+          mountPath: /mnt/models
+  volumes:
+    - name: diabetes-model-volume
+      persistentVolumeClaim:
+        claimName: diabetes-model-pvc
+    
+

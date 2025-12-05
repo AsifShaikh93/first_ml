@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: diabetes-model-pvc
+  namespace: asif-test    # <-- use the namespace where your app is deployed
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # storageClassName omitted → will use "default" (your EBS CSI class)
+    

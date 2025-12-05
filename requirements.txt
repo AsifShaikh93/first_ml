@@ -6,4 +6,5 @@ pydantic
 joblib
 scikit-learn
 fastapi
+jinja2
 uvicorn[standard]

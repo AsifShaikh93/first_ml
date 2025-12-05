@@ -1,5 +1,17 @@
-FROM python:3.10
+FROM python:3.10-slim
+
 WORKDIR /app
-COPY . /app 
-RUN pip install -r requirements.txt
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy UI files
+COPY ./templates /app/templates
+COPY ./static /app/static
+
+# Copy source code and model file
+COPY main.py /app/
+
+EXPOSE 8000
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
