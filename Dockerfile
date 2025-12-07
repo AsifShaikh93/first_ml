@@ -6,11 +6,11 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy UI files
-COPY ./templates /app/templates
-COPY ./static /app/static
+COPY .app/templates /app/templates
+COPY .app/static /app/static
 
 # Copy source code and model file
-COPY main.py /app/
+COPY .app/main.py /app/
 
 EXPOSE 8000
 
