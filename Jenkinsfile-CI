@@ -33,7 +33,7 @@ pipeline {
 
         stage('Trigger CD Pipeline') {
             steps {
-                build job: 'Jenkinsfile-CD', 
+                build job: 'first_ml_new_CD', 
                       wait: true, 
                       parameters: [
                           [$class: 'StringParameterValue', name: 'IMAGE_TAG', value: env.IMAGE_TAG]
