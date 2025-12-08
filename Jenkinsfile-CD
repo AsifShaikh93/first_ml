@@ -12,30 +12,32 @@ pipeline {
     stages {
         stage('Checkout') {
             steps { 
-                git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' 
+                git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml_k8s.git' 
             }
         }
     
-        stage('Check for [ci skip]') {
-    steps {
-        script {
-            def msg = sh(
-                script: "git log -1 --pretty=%B",
-                returnStdout: true
-            ).trim()
+        stage('Edit and Push Manifest') {
+            steps {
+                script {
+                    def tagToDeploy = params.IMAGE_TAG 
 
-            if (msg.contains('[ci skip]')) {
-                echo "Commit message contains [ci skip] – skipping CI pipeline."
-
-                // Mark as NOT_BUILT (or ABORTED if you prefer)
-                currentBuild.result = 'NOT_BUILT'
-
-                // This actually STOPS the pipeline right here
-                error("CI skipped due to [ci skip] in commit message")
+                    withCredentials([usernamePassword(credentialsId: 'git-cred', usernameVariable: 'user', passwordVariable: 'pass')]) {
+                        sh """
+                        sed -i "s#^\\( *image: \\).*#\\1${IMAGE_NAME}:${tagToDeploy}#" k8s/deploy.yaml
+                        git config user.name "Jenkins CD Bot"
+                        git config user.email "jenkins-cd@local"
+                        git remote set-url origin https://${user}:${pass}@github.com/AsifShaikh93/first_ml_k8s.git                        
+                        git add k8s/deploy.yaml
+                        if git diff --cached --quiet; then
+                            echo "No changes to commit in deploy.yaml."
+                        else
+                            git commit -m "Update image tag to ${tagToDeploy}"
+                            git push origin main
+                        fi
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
     }
 }
