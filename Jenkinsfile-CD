@@ -1,44 +1,43 @@
-                                                pipeline {
+pipeline {
     agent any
+
+    parameters {
+        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag to deploy')
+    }
 
     environment {
         IMAGE_NAME = 'asif1993/second_ml'
     }
 
     stages {
-        
-				stage('Checkout') {
-					steps { git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' }
-				}
-		
-				stage('edit deploy.yaml') {
-					steps { 
-						script {
-						withCredentials([usernamePassword(credentialsId: 'git-cred',usernameVariable: 'user',passwordVariable: 'pass')]) {
-						sh """
-						  sed -i "s#^\\( *image: \\).*#\\1${IMAGE_NAME}:${IMAGE_TAG}#" k8s/deploy.yaml
-
-						  git config user.name "Jenkins CI"
-						  git config user.email "jenkins@local"
-						  git remote set-url origin https://${user}:${pass}@github.com/AsifShaikh93/first_ml.git
-
-						  git add k8s/deploy.yaml
-						  if git diff --cached --quiet; then
-							echo "No changes to commit"
-						  else
-							git commit -m "Update image tag to ${IMAGE_TAG} [ci skip]"
-							git push origin main
-						  fi
-						"""
-					}
-				}
-			}
+        stage('Checkout') {
+            steps { 
+                git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' 
+            }
         }
-	}
-}	
-
-
-
-            
     
+        stage('Edit and Push Manifest') {
+            steps {
+                script {
+                    def tagToDeploy = params.IMAGE_TAG 
 
+                    withCredentials([usernamePassword(credentialsId: 'git-cred', usernameVariable: 'user', passwordVariable: 'pass')]) {
+                        sh """
+                        sed -i "s#^\\( *image: \\).*#\\1${IMAGE_NAME}:${tagToDeploy}#" k8s/deploy.yaml
+                        git config user.name "Jenkins CD Bot"
+                        git config user.email "jenkins-cd@local"
+                        git remote set-url origin https://${user}:${pass}@github.com/AsifShaikh93/first_ml.git                  
+                        git add k8s/deploy.yaml
+                        if git diff --cached --quiet; then
+                            echo "No changes to commit in deploy.yaml."
+                        else
+                            git commit -m "Update image tag to ${tagToDeploy} [ci skip]"
+                            git push origin main
+                        fi
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
