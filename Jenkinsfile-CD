@@ -16,28 +16,26 @@ pipeline {
             }
         }
     
-        stage('Edit and Push Manifest') {
-            steps {
-                script {
-                    def tagToDeploy = params.IMAGE_TAG 
+        stage('Check for [ci skip]') {
+    steps {
+        script {
+            def msg = sh(
+                script: "git log -1 --pretty=%B",
+                returnStdout: true
+            ).trim()
 
-                    withCredentials([usernamePassword(credentialsId: 'git-cred', usernameVariable: 'user', passwordVariable: 'pass')]) {
-                        sh """
-                        sed -i "s#^\\( *image: \\).*#\\1${IMAGE_NAME}:${tagToDeploy}#" k8s/deploy.yaml
-                        git config user.name "Jenkins CD Bot"
-                        git config user.email "jenkins-cd@local"
-                        git remote set-url origin https://${user}:${pass}@github.com/AsifShaikh93/first_ml.git                  
-                        git add k8s/deploy.yaml
-                        if git diff --cached --quiet; then
-                            echo "No changes to commit in deploy.yaml."
-                        else
-                            git commit -m "Update image tag to ${tagToDeploy} [ci skip]"
-                            git push origin main
-                        fi
-                        """
-                    }
-                }
+            if (msg.contains('[ci skip]')) {
+                echo "Commit message contains [ci skip] – skipping CI pipeline."
+
+                // Mark as NOT_BUILT (or ABORTED if you prefer)
+                currentBuild.result = 'NOT_BUILT'
+
+                // This actually STOPS the pipeline right here
+                error("CI skipped due to [ci skip] in commit message")
             }
         }
+    }
+}
+
     }
 }
