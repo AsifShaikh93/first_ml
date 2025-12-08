@@ -20,13 +20,14 @@ pipeline {
             steps {
                 script {
                     def tagToDeploy = params.IMAGE_TAG 
+                    echo "CD: updating deploy.yaml to tag = ${tagToDeploy}"
 
                     withCredentials([usernamePassword(credentialsId: 'git-cred', usernameVariable: 'user', passwordVariable: 'pass')]) {
                         sh """
                         sed -i "s#^\\( *image: \\).*#\\1${IMAGE_NAME}:${tagToDeploy}#" k8s/deploy.yaml
                         git config user.name "Jenkins CD Bot"
                         git config user.email "jenkins-cd@local"
-                        git remote set-url origin https://${user}:${pass}@github.com/AsifShaikh93/first_ml_k8s.git                        
+                        git remote set-url origin https://$user:$pass@github.com/AsifShaikh93/first_ml_k8s.git                        
                         git add k8s/deploy.yaml
                         if git diff --cached --quiet; then
                             echo "No changes to commit in deploy.yaml."
