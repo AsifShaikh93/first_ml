@@ -7,24 +7,6 @@ pipeline {
 
     stages {
 
-       stage('Check for [ci skip]') {
-            steps {
-                script {
-                    def msg = sh(
-                        script: "git log -1 --pretty=%B",
-                        returnStdout: true
-                    ).trim()
-
-                    if (msg.contains('[ci skip]')) {
-                        echo "Commit message contains [ci skip] – skipping CI pipeline."
-                        currentBuild.result = 'NOT_BUILT'
-                        // hard exit from the pipeline
-                        return
-                    }
-                }
-            }
-        }
-        
         stage('Checkout') {
             steps { git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' }
         }
