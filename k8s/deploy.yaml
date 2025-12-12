@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+iapiVersion: apps/v1
 kind: Deployment
 metadata:
   name: diabetes-api-ml
@@ -9,11 +9,17 @@ spec:
   selector:
     matchLabels:
       app: diabetes-api-ml
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0      
   template:
     metadata:
       labels:
         app: diabetes-api-ml
     spec:
+      terminationGracePeriodSeconds: 5
       containers:
       - name: diabetes-api
         image: asif1993/second_ml:e5a2f237
