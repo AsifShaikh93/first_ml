@@ -3,22 +3,25 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-import joblib
 import numpy as np
+import joblib
 import os
-import threading
-import time
+import requests
+import tempfile
 
 app = FastAPI()
 
-# Mount static files and templates
+# UI setup
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Shared model path (PVC mount)
-MODEL_PATH = "/mnt/models/diabetes_model.pkl"
+# ENV: Model Registry URI
+MODEL_URI = os.getenv("MODEL_URI")
+
+if not MODEL_URI:
+    raise RuntimeError("MODEL_URI environment variable is not set")
+
 model = None
-last_mtime = None
 
 
 class DiabetesInput(BaseModel):
@@ -29,39 +32,32 @@ class DiabetesInput(BaseModel):
     Age: int
 
 
-def load_model_if_changed():
-    """Load or reload the model if the file changed on disk."""
-    global model, last_mtime
+def download_model(model_uri: str) -> str:
+    """
+    Download model artifact from Model Registry (HTTP / S3 / MinIO)
+    Returns local file path
+    """
+    print(f"[model] Downloading model from {model_uri}")
 
-    if not os.path.exists(MODEL_PATH):
-        print(f"[model] Model file not found at {MODEL_PATH}")
-        return
+    response = requests.get(model_uri)
+    response.raise_for_status()
 
-    mtime = os.path.getmtime(MODEL_PATH)
-    if last_mtime is None or mtime > last_mtime:
-        print(f"[model] Loading model from {MODEL_PATH}")
-        model = joblib.load(MODEL_PATH)
-        last_mtime = mtime
-        print("[model] Model loaded / reloaded successfully")
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pkl")
+    tmp.write(response.content)
+    tmp.close()
 
-
-def watch_model():
-    """Background thread: periodically check for model file changes."""
-    while True:
-        try:
-            load_model_if_changed()
-        except Exception as e:
-            print(f"[model] Error while reloading model: {e}")
-        time.sleep(60)  # check every 60 seconds
+    print(f"[model] Model downloaded to {tmp.name}")
+    return tmp.name
 
 
 @app.on_event("startup")
-def startup_event():
-    # Initial load
-    load_model_if_changed()
-    # Start background watcher
-    t = threading.Thread(target=watch_model, daemon=True)
-    t.start()
+def load_model():
+    global model
+
+    model_path = download_model(MODEL_URI)
+    model = joblib.load(model_path)
+
+    print("[model] Model loaded successfully")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -72,16 +68,15 @@ async def home(request: Request):
 @app.post("/predict")
 async def predict(data: DiabetesInput):
     if model is None:
-        return {"error": "Model not loaded yet. Try again later."}
+        return {"error": "Model not loaded"}
 
-    input_data = np.array(
-        [[
-            data.Pregnancies,
-            data.Glucose,
-            data.BloodPressure,
-            data.BMI,
-            data.Age,
-        ]]
-    )
+    input_data = np.array([[
+        data.Pregnancies,
+        data.Glucose,
+        data.BloodPressure,
+        data.BMI,
+        data.Age,
+    ]])
+
     prediction = model.predict(input_data)[0]
     return {"diabetes": bool(prediction)}
