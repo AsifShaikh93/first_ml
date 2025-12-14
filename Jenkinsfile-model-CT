@@ -33,5 +33,18 @@ EOF
                 '''
             }
         }
+
+        stage('Trigger CD with MODEL_URI') {
+            steps {
+                script {
+                    def modelUri = readFile('model_uri.txt').trim()
+        
+                    build job: 'first_ml_new_model_CD',
+                          parameters: [
+                              string(name: 'MODEL_URI', value: modelUri)
+                          ]
+                }
+            }
+        }
     }
 }
