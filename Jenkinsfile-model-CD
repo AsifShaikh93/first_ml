@@ -1,0 +1,23 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'MODEL_URI', description: 'New model URI')
+  }
+
+  stages {
+    stage('Update MODEL_URI') {
+      steps {
+        git branch: 'main',
+            credentialsId: 'git-cred',
+            url: 'https://github.com/AsifShaikh93/first_ml_k8s.git'
+
+        sh """
+        sed -i 's|MODEL_URI:.*|MODEL_URI: "${params.MODEL_URI}"|' k8s/deploy.yaml
+        git add k8s/deploy.yaml
+        git commit -m "Promote model ${params.MODEL_URI}"
+        git push origin main
+        """
+      }
+    }
+  }
+}
