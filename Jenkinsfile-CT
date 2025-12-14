@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        KFP_ENDPOINT = "https://kubeflow.your-domain.com"
+        KFP_TOKEN    = credentials('kubeflow-token')
+    }
+
+    stages {
+
+        stage('Compile Pipeline') {
+            steps {
+                sh '''
+                python3 - <<EOF
+from kfp import compiler
+from mlops.pipeline import diabetes_pipeline
+
+compiler.Compiler().compile(
+    pipeline_func=diabetes_pipeline,
+    package_path="pipeline.yaml"
+)
+EOF
+                '''
+            }
+        }
+
+        stage('Upload & Run Pipeline') {
+            steps {
+                sh '''
+                curl -X POST "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
+                     -H "Authorization: Bearer $KFP_TOKEN" \
+                     -F "uploadfile=@pipeline.yaml"
+                '''
+            }
+        }
+    }
+}
