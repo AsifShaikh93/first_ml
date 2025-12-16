@@ -1,20 +1,42 @@
 pipeline {
   agent any
+
   parameters {
-    string(name: 'MODEL_URI', description: 'New model URI')
+    string(
+      name: 'MODEL_URI',
+      description: 'MLflow model URI to promote'
+    )
   }
 
   stages {
-    stage('Update MODEL_URI') {
+
+    stage('Checkout Repo') {
       steps {
         git branch: 'main',
             credentialsId: 'git-cred',
             url: 'https://github.com/AsifShaikh93/first_ml_k8s.git'
+      }
+    }
 
+    stage('Update MODEL_URI') {
+      steps {
         sh """
+        set -e
+
+        git config user.name "jenkins-bot"
+        git config user.email "jenkins@company.com"
+
+        echo "Promoting model: ${params.MODEL_URI}"
+
         sed -i 's|MODEL_URI:.*|MODEL_URI: "${params.MODEL_URI}"|' k8s/deploy.yaml
+
+        if git diff --quiet; then
+          echo "No change in MODEL_URI. Skipping commit."
+          exit 0
+        fi
+
         git add k8s/deploy.yaml
-        git commit -m "Promote model ${params.MODEL_URI}"
+        git commit -m "Promote ML model ${params.MODEL_URI}"
         git push origin main
         """
       }
