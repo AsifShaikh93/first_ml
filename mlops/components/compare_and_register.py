@@ -1,34 +1,59 @@
-# compare_and_register.py
-
-from kfp.registry import ModelRegistryClient
+import mlflow
 
 MODEL_NAME = "diabetes-randomforest"
 
 
 def compare_and_register(
-    model,
-    new_accuracy,
-    previous_accuracy,
-    model_path
+    new_accuracy: float,
+    threshold: float = 0.0
 ):
-    client = ModelRegistryClient()
+    client = mlflow.tracking.MlflowClient()
 
-    if previous_accuracy is not None and new_accuracy <= previous_accuracy:
-        print(
-            f"New model rejected: "
-            f"{new_accuracy:.4f} <= {previous_accuracy:.4f}"
+    try:
+        versions = client.search_model_versions(
+            f"name='{MODEL_NAME}'"
         )
-        return False
+    except Exception:
+        versions = []
 
-    print("New model is better. Registering...")
+    if versions:
+        latest = max(
+            versions,
+            key=lambda v: int(v.version)
+        )
+        prev_accuracy = float(
+            latest.tags.get("accuracy", 0)
+        )
 
-    client.register_model(
-        name=MODEL_NAME,
-        uri=model_path,
-        metrics={"accuracy": new_accuracy},
-        description="RandomForest diabetes classifier",
-        version_notes="Auto-promoted by Kubeflow pipeline"
+        if new_accuracy <= prev_accuracy:
+            print(
+                f"Model rejected: {new_accuracy:.4f} "
+                f"<= {prev_accuracy:.4f}"
+            )
+            return False
+
+    print("Registering new model in MLflow...")
+
+    run = mlflow.active_run()
+    model_uri = f"runs:/{run.info.run_id}/model"
+
+    result = mlflow.register_model(
+        model_uri=model_uri,
+        name=MODEL_NAME
     )
 
-    print("Model registered successfully.")
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=result.version,
+        key="accuracy",
+        value=str(new_accuracy)
+    )
+
+    client.transition_model_version_stage(
+        name=MODEL_NAME,
+        version=result.version,
+        stage="Production"
+    )
+
+    print("Model promoted to Production")
     return True
