@@ -24,26 +24,31 @@ EOF
             }
         }
 
-        stage('Upload & Run Pipeline') {
+        stage('Upload Pipeline') {
             steps {
                 sh '''
-                curl -X POST "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
-                     -H "Authorization: Bearer $KFP_TOKEN" \
-                     -F "uploadfile=@pipeline.yaml"
+                curl -s -X POST \
+                  "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
+                  -H "Authorization: Bearer $KFP_TOKEN" \
+                  -F "uploadfile=@pipeline.yaml"
                 '''
             }
         }
 
-        stage('Trigger CD with MODEL_URI') {
+        stage('Run Pipeline') {
             steps {
-                script {
-                    def modelUri = readFile('model_uri.txt').trim()
-        
-                    build job: 'first_ml_new_model_CD',
-                          parameters: [
-                              string(name: 'MODEL_URI', value: modelUri)
-                          ]
-                }
+                sh '''
+                curl -s -X POST \
+                  "$KFP_ENDPOINT/apis/v1beta1/runs" \
+                  -H "Authorization: Bearer $KFP_TOKEN" \
+                  -H "Content-Type: application/json" \
+                  -d '{
+                    "pipeline_spec": {
+                      "pipeline_id": "diabetes-ct-pipeline"
+                    },
+                    "run_name": "diabetes-ct-run-'"$(date +%s)"'"
+                  }'
+                '''
             }
         }
     }
