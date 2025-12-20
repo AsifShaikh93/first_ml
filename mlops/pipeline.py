@@ -120,6 +120,6 @@ def diabetes_pipeline():
     )
 
     compare_and_register_op(
-        model_path=model_path,
-        accuracy=accuracy,
+        model_path=model_path.output,
+        accuracy=accuracy.output,
     )
