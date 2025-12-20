@@ -1,61 +1,125 @@
 from kfp import dsl
-from kfp.dsl import component, Dataset, Model, Output, Input
+from kfp.dsl import component, Dataset, Model, Output
 
 
-@component
-def load_data_op() -> tuple[Dataset, Dataset]:
+# -------------------------
+# Load Data Component
+# -------------------------
+@component(base_image="python:3.10-slim")
+def load_data_op(
+    X: Output[Dataset],
+    y: Output[Dataset],
+):
     from mlops.components.load_data import load_data
-    X, y = load_data()
-    return X, y
+    import pandas as pd
+
+    X_data, y_data = load_data()
+
+    pd.DataFrame(X_data).to_csv(X.path, index=False)
+    pd.DataFrame(y_data).to_csv(y.path, index=False)
 
 
-@component
+# -------------------------
+# Train Model Component
+# -------------------------
+@component(base_image="python:3.10-slim")
 def train_op(
     X: Dataset,
-    y: Dataset
-) -> tuple[Model, Dataset, Dataset]:
+    y: Dataset,
+    model: Output[Model],
+    X_test: Output[Dataset],
+    y_test: Output[Dataset],
+):
     from mlops.components.train import train_model
-    model, X_test, y_test = train_model(X, y)
-    return model, X_test, y_test
+    import pandas as pd
+    import joblib
+
+    X_df = pd.read_csv(X.path)
+    y_df = pd.read_csv(y.path)
+
+    trained_model, X_test_data, y_test_data = train_model(X_df, y_df)
+
+    joblib.dump(trained_model, model.path)
+    pd.DataFrame(X_test_data).to_csv(X_test.path, index=False)
+    pd.DataFrame(y_test_data).to_csv(y_test.path, index=False)
 
 
-@component
+# -------------------------
+# Evaluate Model Component
+# -------------------------
+@component(base_image="python:3.10-slim")
 def evaluate_op(
     model: Model,
     X_test: Dataset,
-    y_test: Dataset
+    y_test: Dataset,
 ) -> float:
     from mlops.components.evaluate import evaluate_model
-    accuracy = evaluate_model(model, X_test, y_test)
+    import pandas as pd
+    import joblib
+
+    model_obj = joblib.load(model.path)
+    X_df = pd.read_csv(X_test.path)
+    y_df = pd.read_csv(y_test.path)
+
+    accuracy = evaluate_model(model_obj, X_df, y_df)
     return accuracy
 
 
-@component
+# -------------------------
+# Save Model Component
+# -------------------------
+@component(base_image="python:3.10-slim")
 def save_model_op(model: Model) -> str:
     from mlops.components.save_model import save_model
-    model_path = save_model(model)
+    import joblib
+
+    model_obj = joblib.load(model.path)
+    model_path = save_model(model_obj)
     return model_path
 
 
-@component
+# -------------------------
+# Compare & Register Component
+# -------------------------
+@component(base_image="python:3.10-slim")
 def compare_and_register_op(
     model_path: str,
-    accuracy: float
+    accuracy: float,
 ):
     from mlops.components.compare_and_register import compare_and_register
+
     compare_and_register(
         model_path=model_path,
-        new_accuracy=accuracy
+        new_accuracy=accuracy,
     )
 
 
+# -------------------------
+# Pipeline Definition
+# -------------------------
 @dsl.pipeline(
     name="diabetes-ct-pipeline",
-    description="Continuous training with MLflow model registry"
+    description="Continuous training with MLflow model registry",
 )
 def diabetes_pipeline():
-    X, y = load_data_op()
-    model, X_test, y_test = train_op(X, y)
-    accuracy = evaluate_op(model, X_test, y_test)
-    model_path = save_model_op(model)
-    compare_and_register_op(model_path, accuracy)
+    load_task = load_data_op()
+
+    train_task = train_op(
+        X=load_task.outputs["X"],
+        y=load_task.outputs["y"],
+    )
+
+    accuracy = evaluate_op(
+        model=train_task.outputs["model"],
+        X_test=train_task.outputs["X_test"],
+        y_test=train_task.outputs["y_test"],
+    )
+
+    model_path = save_model_op(
+        model=train_task.outputs["model"]
+    )
+
+    compare_and_register_op(
+        model_path=model_path,
+        accuracy=accuracy,
+    )
