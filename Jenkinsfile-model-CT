@@ -26,7 +26,7 @@ pip install --no-cache-dir kfp==2.7.0
                 sh '''
 python3 << 'EOF'
 from kfp import compiler
-from pipeline import diabetes_pipeline
+from mlops.pipeline import diabetes_pipeline
 
 compiler.Compiler().compile(
     pipeline_func=diabetes_pipeline,
