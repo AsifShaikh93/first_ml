@@ -24,16 +24,16 @@ pipeline {
         stage('Compile Pipeline') {
             steps {
                 sh '''
-                python3 - <<EOF
-                from kfp import compiler
-                from mlops.pipeline import diabetes_pipeline
-                
-                compiler.Compiler().compile(
-                    pipeline_func=diabetes_pipeline,
-                    package_path="pipeline.yaml"
-                )
-                EOF
-                '''
+        python3 << 'EOF'
+        from kfp import compiler
+        from pipeline import diabetes_pipeline
+
+        compiler.Compiler().compile(
+            pipeline_func=diabetes_pipeline,
+            package_path="diabetes_pipeline.yaml"
+        )
+        EOF
+        '''        
             }
         }
 
