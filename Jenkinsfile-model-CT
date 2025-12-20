@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        KFP_ENDPOINT = "https://ml-pipeline-ui-apirule.c-321a6c0.stage.kyma.ondemand.com/"
+        KFP_ENDPOINT = "https://ml-pipeline-ui-apirule.c-321a6c0.stage.kyma.ondemand.com"
         KFP_TOKEN    = credentials('kubeflow-token')
     }
 
@@ -16,52 +16,52 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                pip install --no-cache-dir kfp==2.7.0
-                '''
+pip install --no-cache-dir kfp==2.7.0
+'''
             }
         }
 
         stage('Compile Pipeline') {
             steps {
                 sh '''
-        python3 << 'EOF'
-        from kfp import compiler
-        from pipeline import diabetes_pipeline
+python3 << 'EOF'
+from kfp import compiler
+from pipeline import diabetes_pipeline
 
-        compiler.Compiler().compile(
-            pipeline_func=diabetes_pipeline,
-            package_path="diabetes_pipeline.yaml"
-        )
-        EOF
-        '''        
+compiler.Compiler().compile(
+    pipeline_func=diabetes_pipeline,
+    package_path="diabetes_pipeline.yaml"
+)
+EOF
+'''
             }
         }
 
         stage('Upload Pipeline (optional)') {
             steps {
                 sh '''
-                curl -s -X POST \
-                  "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
-                  -H "Authorization: Bearer $KFP_TOKEN" \
-                  -F "uploadfile=@pipeline.yaml" || true
-                '''
+curl -s -X POST \
+  "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
+  -H "Authorization: Bearer $KFP_TOKEN" \
+  -F "uploadfile=@diabetes_pipeline.yaml" || true
+'''
             }
         }
 
         stage('Run Pipeline') {
             steps {
                 sh '''
-                curl -s -X POST \
-                  "$KFP_ENDPOINT/apis/v1beta1/runs" \
-                  -H "Authorization: Bearer $KFP_TOKEN" \
-                  -H "Content-Type: application/json" \
-                  -d '{
-                    "run_name": "diabetes-ct-run-'$(date +%s)'",
-                    "pipeline_spec": {
-                      "workflow_manifest": "'"$(sed 's/"/\\"/g' pipeline.yaml)"'"
-                    }
-                  }'
-                '''
+curl -s -X POST \
+  "$KFP_ENDPOINT/apis/v1beta1/runs" \
+  -H "Authorization: Bearer $KFP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \\"run_name\\": \\"diabetes-ct-run-$(date +%s)\\",
+    \\"pipeline_spec\\": {
+      \\"workflow_manifest\\": \\"$(sed 's/"/\\\\\\"/g' diabetes_pipeline.yaml)\\"
+    }
+  }"
+'''
             }
         }
     }
