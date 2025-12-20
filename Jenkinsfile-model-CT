@@ -65,4 +65,9 @@ curl -s -X POST \
             }
         }
     }
+post {
+    success {
+        build job: 'first_ml_new_model_CD', wait: false
+    }
+  }
 }
