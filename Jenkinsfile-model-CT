@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        KFP_ENDPOINT = "https://kubeflow.your-domain.com"
+        KFP_ENDPOINT = "https://ml-pipeline-ui-apirule.c-321a6c0.stage.kyma.ondemand.com/"
         KFP_TOKEN    = credentials('kubeflow-token')
     }
 
@@ -24,13 +24,13 @@ EOF
             }
         }
 
-        stage('Upload Pipeline') {
+        stage('Upload Pipeline (optional)') {
             steps {
                 sh '''
                 curl -s -X POST \
                   "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
                   -H "Authorization: Bearer $KFP_TOKEN" \
-                  -F "uploadfile=@pipeline.yaml"
+                  -F "uploadfile=@pipeline.yaml" || true
                 '''
             }
         }
@@ -43,10 +43,10 @@ EOF
                   -H "Authorization: Bearer $KFP_TOKEN" \
                   -H "Content-Type: application/json" \
                   -d '{
+                    "run_name": "diabetes-ct-run-'$(date +%s)'",
                     "pipeline_spec": {
-                      "pipeline_id": "diabetes-ct-pipeline"
-                    },
-                    "run_name": "diabetes-ct-run-'"$(date +%s)"'"
+                      "workflow_manifest": "'"$(sed 's/"/\\"/g' pipeline.yaml)"'"
+                    }
                   }'
                 '''
             }
