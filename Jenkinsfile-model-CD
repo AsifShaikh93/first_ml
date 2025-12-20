@@ -1,14 +1,65 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'python:3.10'
+      args '-u root'
+    }
+  }
 
-  parameters {
-    string(
-      name: 'MODEL_URI',
-      description: 'MLflow model URI to promote'
-    )
+  environment {
+    MLFLOW_TRACKING_URI = "http://mlflow.mlops.svc.cluster.local:5000"
+    MODEL_NAME = "diabetes-model"
   }
 
   stages {
+
+    stage('Install Dependencies') {
+      steps {
+        sh '''
+apt-get update
+apt-get install -y git
+pip install --no-cache-dir mlflow
+'''
+      }
+    }
+
+    stage('Fetch MODEL_URI from MLflow') {
+      steps {
+        sh '''
+set -e
+
+python3 << 'EOF'
+import mlflow
+from mlflow.tracking import MlflowClient
+import os
+
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
+client = MlflowClient()
+
+model_name = os.environ["MODEL_NAME"]
+
+versions = client.search_model_versions(f"name='{model_name}'")
+
+if not versions:
+    raise RuntimeError("No registered model versions found")
+
+# Pick latest version (or filter by stage if you want)
+latest = sorted(
+    versions,
+    key=lambda v: int(v.version),
+    reverse=True
+)[0]
+
+model_uri = f"models:/{model_name}/{latest.version}"
+
+print(f"Selected model URI: {model_uri}")
+
+with open("model_uri.env", "w") as f:
+    f.write(f"MODEL_URI={model_uri}")
+EOF
+'''
+      }
+    }
 
     stage('Checkout Repo') {
       steps {
@@ -20,25 +71,21 @@ pipeline {
 
     stage('Update MODEL_URI') {
       steps {
-        sh """
-        set -e
+        sh '''
+set -e
+source model_uri.env
 
-        git config user.name "jenkins-bot"
-        git config user.email "jenkins@company.com"
+git config user.name "jenkins-bot"
+git config user.email "jenkins@company.com"
 
-        echo "Promoting model: ${params.MODEL_URI}"
+echo "Promoting model: $MODEL_URI"
 
-        sed -i 's|MODEL_URI:.*|MODEL_URI: "${params.MODEL_URI}"|' k8s/deploy.yaml
+sed -i "s|MODEL_URI:.*|MODEL_URI: \\"$MODEL_URI\\"|" k8s/deploy.yaml
 
-        if git diff --quiet; then
-          echo "No change in MODEL_URI. Skipping commit."
-          exit 0
-        fi
-
-        git add k8s/deploy.yaml
-        git commit -m "Promote ML model ${params.MODEL_URI}"
-        git push origin main
-        """
+git add k8s/deploy.yaml
+git commit -m "Promote ML model $MODEL_URI"
+git push origin main
+'''
       }
     }
   }
