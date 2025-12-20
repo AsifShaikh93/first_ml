@@ -1,30 +1,37 @@
 from kfp import dsl
-from kfp.dsl import component
+from kfp.dsl import component, Dataset, Model, Output, Input
 
 
 @component
-def load_data_op():
+def load_data_op() -> tuple[Dataset, Dataset]:
     from mlops.components.load_data import load_data
     X, y = load_data()
     return X, y
 
 
 @component
-def train_op(X, y):
+def train_op(
+    X: Dataset,
+    y: Dataset
+) -> tuple[Model, Dataset, Dataset]:
     from mlops.components.train import train_model
     model, X_test, y_test = train_model(X, y)
     return model, X_test, y_test
 
 
 @component
-def evaluate_op(model, X_test, y_test) -> float:
+def evaluate_op(
+    model: Model,
+    X_test: Dataset,
+    y_test: Dataset
+) -> float:
     from mlops.components.evaluate import evaluate_model
     accuracy = evaluate_model(model, X_test, y_test)
     return accuracy
 
 
 @component
-def save_model_op(model) -> str:
+def save_model_op(model: Model) -> str:
     from mlops.components.save_model import save_model
     model_path = save_model(model)
     return model_path
