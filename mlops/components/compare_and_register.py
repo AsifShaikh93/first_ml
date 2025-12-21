@@ -24,9 +24,8 @@ def compare_and_register(
             versions,
             key=lambda v: int(v.version)
         )
-        prev_accuracy = float(
-            latest.tags.get("accuracy", 0)
-        )
+        
+        prev_accuracy = float(latest.tags["accuracy"])
 
         if new_accuracy <= prev_accuracy:
             print(
