@@ -80,11 +80,11 @@ print("Waiting for training to complete...")
 run_detail = client.wait_for_run_completion(run.run_id, timeout=1200)
 
 status = run_detail.run.status.lower()
-print(f"Run finished with status: {status}")
 
 if status != 'succeeded':
     print("Pipeline run failed or was cancelled. Aborting CD trigger.")
     sys.exit(1)
+
 EOF
 '''
                 }
