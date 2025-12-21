@@ -1,0 +1,39 @@
+apiVersion: gateway.kyma-project.io/v2
+kind: APIRule
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: first-ml-k8s:gateway.kyma-project.io/APIRule:asif-test/diabetes-api-ml-apirule
+    gateway.kyma-project.io/original-version: v2alpha1
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.kyma-project.io/v2alpha1","kind":"APIRule","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"first-ml-k8s:gateway.kyma-project.io/APIRule:asif-test/diabetes-api-ml-apirule"},"labels":{"app.kubernetes.io/name":"diabetes-api-ml"},"name":"diabetes-api-ml-apirule","namespace":"asif-test"},"spec":{"gateway":"kyma-system/kyma-gateway","hosts":["asif-test.c-321a6c0.stage.kyma.ondemand.com"],"rules":[{"methods":["GET","POST","PUT","PATCH","DELETE","HEAD"],"noAuth":true,"path":"/{**}"}],"service":{"name":"diabetes-api-ml-service","port":80}}}
+  creationTimestamp: "2025-12-12T16:37:38Z"
+  finalizers:
+  - gateway.kyma-project.io/subresources
+  generation: 1
+  labels:
+    app.kubernetes.io/name: diabetes-api-ml
+  name: diabetes-api-ml-apirule
+  namespace: asif-test
+  resourceVersion: "134764316"
+  uid: bed86936-16f8-4634-b854-d1d44a5b1516
+spec:
+  gateway: kyma-system/kyma-gateway
+  hosts:
+  - asif-test.c-321a6c0.stage.kyma.ondemand.com
+  rules:
+  - methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - HEAD
+    noAuth: true
+    path: /{**}
+  service:
+    name: diabetes-api-ml-service
+    port: 80
+status:
+  description: Reconciled successfully
+  lastProcessedTime: "2025-12-20T22:39:04Z"
+  state: Ready
