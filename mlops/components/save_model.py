@@ -23,7 +23,7 @@ def save_model(model) -> str:
 
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    with mlflow.start_run() as run:
+    with mlflow.start_run() as train:
         # Log the model
         mlflow.sklearn.log_model(
             sk_model=model,
