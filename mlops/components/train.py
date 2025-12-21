@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 
 def train_model(X, y):
     mlflow.set_experiment("diabetes-ct")
+    mlflow.set_tracking_uri("https://mlflow-apirule.c-321a6c0.stage.kyma.ondemand.com")
 
     with mlflow.start_run(run_name="train"):
         mlflow.log_param("model_type", "RandomForest")
