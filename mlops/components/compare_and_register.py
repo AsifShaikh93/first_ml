@@ -1,6 +1,6 @@
 import mlflow
 
-MODEL_NAME = "diabetes-randomforest"
+MODEL_NAME = "diabetes-model"
 
 
 def compare_and_register(
