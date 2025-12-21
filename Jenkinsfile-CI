@@ -1,5 +1,26 @@
 pipeline {
-    agent any
+     agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - sleep
+    - infinity
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: docker-config
+"""
+    }
+  }
 
     environment {
         IMAGE_NAME = 'asif1993/second_ml'
@@ -11,26 +32,26 @@ pipeline {
             steps { git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' }
         }
 
-        stage('Build & Push Docker Image') {
-            steps {
-                script {
-                    def shortCommit = sh(script: "git rev-parse --short HEAD",returnStdout: true).trim()
-                    env.IMAGE_TAG = shortCommit
-                    echo "Computed IMAGE_TAG = ${env.IMAGE_TAG}"
-                }
+            stage('Build & Push Image') {
+      steps {
+        container('kaniko') {
+          script {
+            def shortCommit = sh(
+              script: "git rev-parse --short HEAD",
+              returnStdout: true
+            ).trim()
+            env.IMAGE_TAG = shortCommit
+          }
 
-                withCredentials([usernamePassword(credentialsId: 'docker_cred', usernameVariable: 'user', passwordVariable: 'pass')]) {
-                    sh """
-                      echo "$pass" | docker login -u "$user" --password-stdin
-
-                      docker build -t ${IMAGE_NAME}:${env.IMAGE_TAG} .
-                      docker push ${IMAGE_NAME}:${env.IMAGE_TAG}
-
-                      docker logout
-                    """
-                }
-            }
+          sh '''
+            /kaniko/executor \
+              --context $WORKSPACE \
+              --dockerfile Dockerfile \
+              --destination ${IMAGE_NAME}:${IMAGE_TAG}
+          '''
         }
+      }
+    }
 
         stage('Trigger CD Pipeline') {
             steps {
