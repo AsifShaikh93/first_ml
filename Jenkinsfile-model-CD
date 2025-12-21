@@ -15,16 +15,18 @@ pipeline {
 
     stage('Install Dependencies') {
       steps {
+          container('python') {
         sh '''
-apt-get update
-apt-get install -y git
+
 pip install --no-cache-dir mlflow
 '''
+         }
       }
     }
 
     stage('Fetch MODEL_URI from MLflow') {
       steps {
+          container('python') {
         sh '''
 set -e
 
@@ -58,7 +60,8 @@ with open("model_uri.env", "w") as f:
     f.write(f"MODEL_URI={model_uri}")
 EOF
 '''
-      }
+          }
+       }
     }
 
     stage('Checkout Repo') {
@@ -71,6 +74,7 @@ EOF
 
     stage('Update MODEL_URI') {
       steps {
+          container('python') {
         sh '''
 set -e
 source model_uri.env
@@ -86,6 +90,7 @@ git add k8s/deploy.yaml
 git commit -m "Promote ML model $MODEL_URI"
 git push origin main
 '''
+        }
       }
     }
   }
