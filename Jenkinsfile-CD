@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+
+    agent {
+       kubernetes {
+       inheritFrom 'model-ct'
+       }
+    }
 
     parameters {
         string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag to deploy')
