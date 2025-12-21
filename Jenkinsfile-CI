@@ -1,27 +1,10 @@
 pipeline {
-     agent {
-    kubernetes {
-   label 'jenkins-agent'
-      yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:debug
-    command:
-    - sleep
-    - infinity
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
-  volumes:
-  - name: docker-config
-    secret:
-      secretName: docker-config
-"""
+
+    agent {
+       kubernetes {
+          inheritFrom 'model-ct'
+       }
     }
-  }
 
     environment {
         IMAGE_NAME = 'asif1993/second_ml'
