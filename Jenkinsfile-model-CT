@@ -75,10 +75,11 @@ EOF
       }
     }
 }
-    }
-    stage('Trigger model-CD Pipeline') {
+
+       stage('Trigger model-CD Pipeline') {
             steps {
                 build job: 'first_ml_new_model_CD', wait: true
             }
-    }  
+       }  
+   }
 }
