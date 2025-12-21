@@ -109,9 +109,9 @@ def diabetes_pipeline():
         y_test=train_task.outputs["y_test"],
     )
 
-    model_path = save_model_op(
-        model=train_task.outputs["model"]
-    )
+#    model_path = save_model_op(
+#        model=train_task.outputs["model"]
+#    )
 
     compare_and_register_op(
     accuracy=accuracy.output,
