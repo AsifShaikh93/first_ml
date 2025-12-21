@@ -52,29 +52,44 @@ curl -s -X POST \
         }
 
        stage('Run Pipeline') {
-    steps {
-      container('python') {
-        sh '''
+            steps {
+                container('python') {
+                    sh '''
 python3 << 'EOF'
 import kfp
 import os
+import sys
 
 client = kfp.Client(
     host=os.environ["KFP_ENDPOINT"],
     existing_token=os.environ["KFP_TOKEN"]
 )
 
+print("Submitting pipeline run to Kubeflow...")
 run = client.create_run_from_pipeline_package(
     pipeline_file="diabetes_pipeline.yaml",
     arguments={},
     run_name=f"diabetes-ct-run-{os.popen('date +%s').read().strip()}"
 )
+
 print(f"Run created: {run.run_id}")
+print("Waiting for training to complete...")
+
+# This line is the fix. It blocks the pipeline until the Kubeflow run finishes.
+# timeout=1200 means wait up to 20 minutes.
+run_detail = client.wait_for_run_completion(run.run_id, timeout=1200)
+
+status = run_detail.run.status.lower()
+print(f"Run finished with status: {status}")
+
+if status != 'succeeded':
+    print("Pipeline run failed or was cancelled. Aborting CD trigger.")
+    sys.exit(1)
 EOF
 '''
-      }
-    }
-}
+                }
+            }
+        }
 
        stage('Trigger model-CD Pipeline') {
             steps {
