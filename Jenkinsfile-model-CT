@@ -1,10 +1,20 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'
-            args '-u root'
-        }
-    }
+
+agent {
+  kubernetes {
+    yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: python
+    image: python:3.10
+    command:
+    - cat
+    tty: true
+"""
+  }
+}
 
     environment {
         KFP_ENDPOINT = "https://ml-pipeline-ui-apirule.c-321a6c0.stage.kyma.ondemand.com"
@@ -15,14 +25,16 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
+              container('python') {
                 sh '''
 pip install --no-cache-dir kfp==2.7.0
-'''
+'''           }
             }
         }
 
         stage('Compile Pipeline') {
             steps {
+              container('python') {
                 sh '''
 python3 << 'EOF'
 from kfp import compiler
@@ -33,23 +45,25 @@ compiler.Compiler().compile(
     package_path="diabetes_pipeline.yaml"
 )
 EOF
-'''
+'''             }
             }
         }
 
         stage('Upload Pipeline (optional)') {
             steps {
+              container('python') {
                 sh '''
 curl -s -X POST \
   "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
   -H "Authorization: Bearer $KFP_TOKEN" \
   -F "uploadfile=@diabetes_pipeline.yaml" || true
-'''
+'''           }
             }
         }
 
         stage('Run Pipeline') {
             steps {
+              container('python') {
                 sh '''
 curl -s -X POST \
   "$KFP_ENDPOINT/apis/v1beta1/runs" \
@@ -61,7 +75,7 @@ curl -s -X POST \
       \\"workflow_manifest\\": \\"$(sed 's/"/\\\\\\"/g' diabetes_pipeline.yaml)\\"
     }
   }"
-'''
+'''           }
             }
         }
     }
