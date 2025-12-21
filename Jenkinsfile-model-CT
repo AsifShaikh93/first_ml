@@ -51,23 +51,30 @@ curl -s -X POST \
             }
         }
 
-        stage('Run Pipeline') {
-            steps {
-              container('python') {
-                sh '''
-curl -s -X POST \
-  "$KFP_ENDPOINT/apis/v1beta1/runs" \
-  -H "Authorization: Bearer $KFP_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \\"run_name\\": \\"diabetes-ct-run-$(date +%s)\\",
-    \\"pipeline_spec\\": {
-      \\"workflow_manifest\\": \\"$(sed 's/"/\\\\\\"/g' diabetes_pipeline.yaml)\\"
+       stage('Run Pipeline') {
+    steps {
+      container('python') {
+        sh '''
+python3 << 'EOF'
+import kfp
+import os
+
+client = kfp.Client(
+    host=os.environ["KFP_ENDPOINT"],
+    existing_token=os.environ["KFP_TOKEN"]
+)
+
+run = client.create_run_from_pipeline_package(
+    pipeline_file="diabetes_pipeline.yaml",
+    arguments={},
+    run_name=f"diabetes-ct-run-{os.popen('date +%s').read().strip()}"
+)
+print(f"Run created: {run.run_id}")
+EOF
+'''
+      }
     }
-  }"
-'''           }
-            }
-        }
+}
     }
 post {
     success {
