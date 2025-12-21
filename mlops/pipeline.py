@@ -82,18 +82,11 @@ def save_model_op(model: Model) -> str:
 # -------------------------
 # Compare & Register Component
 # -------------------------
+
 @component(base_image="python:3.10-slim")
-def compare_and_register_op(
-    model_path: str,
-    accuracy: float,
-):
+def compare_and_register_op(accuracy: float):
     from mlops.components.compare_and_register import compare_and_register
-
-    compare_and_register(
-        model_path=model_path,
-        new_accuracy=accuracy,
-    )
-
+    compare_and_register(new_accuracy=accuracy)
 
 # -------------------------
 # Pipeline Definition
@@ -121,6 +114,6 @@ def diabetes_pipeline():
     )
 
     compare_and_register_op(
-        model_path=model_path.output,
-        accuracy=accuracy.output,
-    )
+    accuracy=accuracy.output,
+ )
+
