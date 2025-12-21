@@ -82,18 +82,13 @@ import time
 
 run_id = run.run_id
 for _ in range(60):  # 60 × 20s = 20 min
-    run_detail = client.get_run(run_id)
-    status = run_detail.run.state.lower()
-    print(f"Current status: {status}")
 
-    if status in ("succeeded", "failed", "cancelled"):
-        break
+run_detail = client.wait_for_run_completion(
+    run.run_id,
+    timeout=1200
+)
 
-    time.sleep(20)
-
-if status != "succeeded":
-    raise RuntimeError(f"Pipeline finished with status: {status}")
-
+status = run_detail.state.lower()
 print(f"Run finished with status: {status}")
 
 if status != "succeeded":
