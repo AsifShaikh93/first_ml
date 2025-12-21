@@ -6,7 +6,7 @@ from kfp.dsl import component, Dataset, Model, Output
 # -------------------------
 # Load Data Component
 # -------------------------
-@component(base_image="python:3.10-slim")
+@component(base_image="asif1993/mlops-training:latest")
 def load_data_op(
     X: Output[Dataset],
     y: Output[Dataset],
@@ -23,7 +23,7 @@ def load_data_op(
 # -------------------------
 # Train Model Component
 # -------------------------
-@component(base_image="python:3.10-slim")
+@component(base_image="asif1993/mlops-training:latest")
 def train_op(
     X: Dataset,
     y: Dataset,
@@ -48,7 +48,7 @@ def train_op(
 # -------------------------
 # Evaluate Model Component
 # -------------------------
-@component(base_image="python:3.10-slim")
+@component(base_image="asif1993/mlops-training:latest")
 def evaluate_op(
     model: Model,
     X_test: Dataset,
@@ -69,21 +69,21 @@ def evaluate_op(
 # -------------------------
 # Save Model Component
 # -------------------------
-@component(base_image="python:3.10-slim")
-def save_model_op(model: Model) -> str:
-    from mlops.components.save_model import save_model
-    import joblib
+# @component(base_image="python:3.10-slim")
+# def save_model_op(model: Model) -> str:
+#    from mlops.components.save_model import save_model
+#    import joblib
 
-    model_obj = joblib.load(model.path)
-    model_path = save_model(model_obj)
-    return model_path
+#    model_obj = joblib.load(model.path)
+#    model_path = save_model(model_obj)
+#    return model_path
 
 
 # -------------------------
 # Compare & Register Component
 # -------------------------
 
-@component(base_image="python:3.10-slim")
+@component(base_image="asif1993/mlops-training:latest")
 def compare_and_register_op(accuracy: float):
     from mlops.components.compare_and_register import compare_and_register
     compare_and_register(new_accuracy=accuracy)
