@@ -16,26 +16,26 @@ pipeline {
             steps { git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/AsifShaikh93/first_ml.git' }
         }
 
-            stage('Build & Push Image') {
-      steps {
-        container('kaniko') {
-          script {
-            def shortCommit = sh(
-              script: "git rev-parse --short HEAD",
-              returnStdout: true
-            ).trim()
-            env.IMAGE_TAG = shortCommit
-          }
-
-          sh '''
-            /kaniko/executor \
-              --context $WORKSPACE \
-              --dockerfile Dockerfile \
-              --destination ${IMAGE_NAME}:${IMAGE_TAG}
-          '''
-        }
-      }
-    }
+        stage('Build & Push Image') {
+                steps {
+                    script {
+                        if (env.GIT_COMMIT) {
+                            env.IMAGE_TAG = env.GIT_COMMIT.take(7)
+                        } else {
+                            env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        }
+                    }
+            
+                    container('kaniko') {
+                        sh """
+                            /kaniko/executor \
+                            --context $WORKSPACE \
+                            --dockerfile Dockerfile \
+                            --destination ${IMAGE_NAME}:${env.IMAGE_TAG}
+                        """
+                    }
+                }
+            }    
 
         stage('Trigger CD Pipeline') {
             steps {
