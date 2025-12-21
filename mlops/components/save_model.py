@@ -17,7 +17,7 @@ def save_model(model) -> str:
     EXPERIMENT_NAME = "diabetes-ct"
 
     # Optional: set explicitly if not injected via env
-    # mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI"))
+    mlflow.set_tracking_uri('https://mlflow-apirule.c-321a6c0.stage.kyma.ondemand.com')
 
     # ---------------------------------------
 
