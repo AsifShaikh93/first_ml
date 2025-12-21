@@ -1,9 +1,9 @@
 pipeline {
 
     agent {
-       kubernetes {
-       inheritFrom 'model-ct'
-       }
+        kubernetes {
+            inheritFrom 'model-ct'
+        }
     }
 
     environment {
@@ -15,17 +15,18 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-              container('python') {
-                sh '''
+                container('python') {
+                    sh '''
 pip install --no-cache-dir kfp==2.7.0
-'''           }
+'''
+                }
             }
         }
 
         stage('Compile Pipeline') {
             steps {
-              container('python') {
-                sh '''
+                container('python') {
+                    sh '''
 python3 << 'EOF'
 from kfp import compiler
 from mlops.pipeline import diabetes_pipeline
@@ -35,23 +36,25 @@ compiler.Compiler().compile(
     package_path="diabetes_pipeline.yaml"
 )
 EOF
-'''             }
+'''
+                }
             }
         }
 
         stage('Upload Pipeline (optional)') {
             steps {
-              container('python') {
-                sh '''
+                container('python') {
+                    sh '''
 curl -s -X POST \
   "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
   -H "Authorization: Bearer $KFP_TOKEN" \
   -F "uploadfile=@diabetes_pipeline.yaml" || true
-'''           }
+'''
+                }
             }
         }
 
-       stage('Run Pipeline') {
+        stage('Run Pipeline') {
             steps {
                 container('python') {
                     sh '''
@@ -67,6 +70,7 @@ client = kfp.Client(
 )
 
 print("Submitting pipeline run to Kubeflow...")
+
 run = client.create_run_from_pipeline_package(
     pipeline_file="diabetes_pipeline.yaml",
     arguments={},
@@ -76,36 +80,6 @@ run = client.create_run_from_pipeline_package(
 print(f"Run created: {run.run_id}")
 print("Waiting for training to complete...")
 
-# This line is the fix. It blocks the pipeline until the Kubeflow run finishes.
-# timeout=1200 means wait up to 20 minutes.
-import time
-
-run_id = run.run_id
-for _ in range(60):  # 60 × 20s = 20 min
-
 run_detail = client.wait_for_run_completion(
     run.run_id,
-    timeout=1200
-)
-
-status = run_detail.state.lower()
-print(f"Run finished with status: {status}")
-
-if status != "succeeded":
-    print("Pipeline run failed or was cancelled. Aborting CD trigger.")
-    sys.exit(1)
-
-
-EOF
-'''
-                }
-            }
-        }
-
-       stage('Trigger model-CD Pipeline') {
-            steps {
-                build job: 'first_ml_new_model_CD', wait: true
-            }
-       }  
-   }
-}
+    timeout=1200  # 20
