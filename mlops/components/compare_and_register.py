@@ -9,7 +9,9 @@ def compare_and_register(
     threshold: float = 0.0
 ):
     client = mlflow.tracking.MlflowClient()
+    mlflow.set_tracking_uri("https://mlflow-apirule.c-321a6c0.stage.kyma.ondemand.com")
 
+    
     try:
         versions = client.search_model_versions(
             f"name='{MODEL_NAME}'"
