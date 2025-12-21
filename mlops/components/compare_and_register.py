@@ -1,3 +1,4 @@
+# compare_and_register.py
 import mlflow
 
 MODEL_NAME = "diabetes-model"
