@@ -92,7 +92,7 @@ def compare_and_register_op(accuracy: float):
 # Pipeline Definition
 # -------------------------
 @dsl.pipeline(
-    name="diabetes-ct-pipeline",
+    name="diabetes-ct-pipeline-v2",
     description="Continuous training with MLflow model registry",
 )
 def diabetes_pipeline():
