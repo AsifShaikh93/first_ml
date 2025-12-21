@@ -18,7 +18,8 @@ def train_model(X, y):
             X, y, test_size=0.2, random_state=42
         )
 
-        model = RandomForestClassifier()
+        model = RandomForestClassifier(n_estimators=200,max_depth=10,random_state=42)
+
         model.fit(X_train, y_train)
 
         # log model artifact
