@@ -1,6 +1,6 @@
 # pipeline.py
 from kfp import dsl
-from kfp.dsl import component, Input, Output
+from kfp.dsl import component
 
 
 # -------------------------
@@ -8,16 +8,16 @@ from kfp.dsl import component, Input, Output
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def load_data_op(
-    X: Output[dsl.Dataset],
-    y: Output[dsl.Dataset],
+    X_path: str,
+    y_path: str,
 ):
     from mlops.components.load_data import load_data
     import pandas as pd
 
     X_data, y_data = load_data()
 
-    pd.DataFrame(X_data).to_csv(X.path, index=False)
-    pd.DataFrame(y_data).to_csv(y.path, index=False)
+    pd.DataFrame(X_data).to_csv(X_path, index=False)
+    pd.DataFrame(y_data).to_csv(y_path, index=False)
 
 
 # -------------------------
@@ -25,24 +25,24 @@ def load_data_op(
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def train_op(
-    X: Input[dsl.Dataset],
-    y: Input[dsl.Dataset],
-    model: Output[dsl.Model],
-    X_test: Output[dsl.Dataset],
-    y_test: Output[dsl.Dataset],
+    X_path: str,
+    y_path: str,
+    model_path: str,
+    X_test_path: str,
+    y_test_path: str,
 ):
     from mlops.components.train import train_model
     import pandas as pd
     import joblib
 
-    X_df = pd.read_csv(X.path)
-    y_df = pd.read_csv(y.path)
+    X_df = pd.read_csv(X_path)
+    y_df = pd.read_csv(y_path)
 
     trained_model, X_test_data, y_test_data = train_model(X_df, y_df)
 
-    joblib.dump(trained_model, model.path)
-    pd.DataFrame(X_test_data).to_csv(X_test.path, index=False)
-    pd.DataFrame(y_test_data).to_csv(y_test.path, index=False)
+    joblib.dump(trained_model, model_path)
+    pd.DataFrame(X_test_data).to_csv(X_test_path, index=False)
+    pd.DataFrame(y_test_data).to_csv(y_test_path, index=False)
 
 
 # -------------------------
@@ -50,17 +50,17 @@ def train_op(
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def evaluate_op(
-    model: Input[dsl.Model],
-    X_test: Input[dsl.Dataset],
-    y_test: Input[dsl.Dataset],
+    model_path: str,
+    X_test_path: str,
+    y_test_path: str,
 ) -> float:
     from mlops.components.evaluate import evaluate_model
     import pandas as pd
     import joblib
 
-    model_obj = joblib.load(model.path)
-    X_df = pd.read_csv(X_test.path)
-    y_df = pd.read_csv(y_test.path)
+    model_obj = joblib.load(model_path)
+    X_df = pd.read_csv(X_test_path)
+    y_df = pd.read_csv(y_test_path)
 
     accuracy = evaluate_model(model_obj, X_df, y_df)
     return accuracy
@@ -84,17 +84,23 @@ def compare_and_register_op(accuracy: float):
 )
 def diabetes_pipeline():
 
-    load_task = load_data_op()
+    load_task = load_data_op(
+        X_path="/tmp/X.csv",
+        y_path="/tmp/y.csv",
+    )
 
     train_task = train_op(
-        X=load_task.outputs["X"],
-        y=load_task.outputs["y"],
+        X_path=load_task.outputs["X_path"],
+        y_path=load_task.outputs["y_path"],
+        model_path="/tmp/model.joblib",
+        X_test_path="/tmp/X_test.csv",
+        y_test_path="/tmp/y_test.csv",
     )
 
     eval_task = evaluate_op(
-        model=train_task.outputs["model"],
-        X_test=train_task.outputs["X_test"],
-        y_test=train_task.outputs["y_test"],
+        model_path=train_task.outputs["model_path"],
+        X_test_path=train_task.outputs["X_test_path"],
+        y_test_path=train_task.outputs["y_test_path"],
     )
 
     compare_and_register_op(
