@@ -1,13 +1,12 @@
 # pipeline.py
 from kfp import dsl
-from kfp.dsl import component
+from kfp.components import create_component_from_func
 
 
 # -------------------------
 # Load Data Component
 # -------------------------
-@component(base_image="asif1993/mlops-training:latest")
-def load_data_op(
+def load_data_fn(
     X_path: str,
     y_path: str,
 ):
@@ -20,11 +19,16 @@ def load_data_op(
     pd.DataFrame(y_data).to_csv(y_path, index=False)
 
 
+load_data_op = create_component_from_func(
+    load_data_fn,
+    base_image="asif1993/mlops-training:latest",
+)
+
+
 # -------------------------
 # Train Model Component
 # -------------------------
-@component(base_image="asif1993/mlops-training:latest")
-def train_op(
+def train_fn(
     X_path: str,
     y_path: str,
     model_path: str,
@@ -45,11 +49,16 @@ def train_op(
     pd.DataFrame(y_test_data).to_csv(y_test_path, index=False)
 
 
+train_op = create_component_from_func(
+    train_fn,
+    base_image="asif1993/mlops-training:latest",
+)
+
+
 # -------------------------
 # Evaluate Model Component
 # -------------------------
-@component(base_image="asif1993/mlops-training:latest")
-def evaluate_op(
+def evaluate_fn(
     model_path: str,
     X_test_path: str,
     y_test_path: str,
@@ -62,21 +71,31 @@ def evaluate_op(
     X_df = pd.read_csv(X_test_path)
     y_df = pd.read_csv(y_test_path)
 
-    accuracy = evaluate_model(model_obj, X_df, y_df)
-    return accuracy
+    return evaluate_model(model_obj, X_df, y_df)
+
+
+evaluate_op = create_component_from_func(
+    evaluate_fn,
+    base_image="asif1993/mlops-training:latest",
+)
 
 
 # -------------------------
 # Compare & Register Component
 # -------------------------
-@component(base_image="asif1993/mlops-training:latest")
-def compare_and_register_op(accuracy: float):
+def compare_and_register_fn(accuracy: float):
     from mlops.components.compare_and_register import compare_and_register
     compare_and_register(new_accuracy=accuracy)
 
 
+compare_and_register_op = create_component_from_func(
+    compare_and_register_fn,
+    base_image="asif1993/mlops-training:latest",
+)
+
+
 # -------------------------
-# Pipeline Definition (KFP v1)
+# Pipeline Definition
 # -------------------------
 @dsl.pipeline(
     name="diabetes-ct-pipeline",
