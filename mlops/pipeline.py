@@ -1,6 +1,6 @@
 # pipeline.py
 from kfp import dsl
-from kfp.dsl import component, Dataset, Model, Output
+from kfp.dsl import component, Input, Output
 
 
 # -------------------------
@@ -8,8 +8,8 @@ from kfp.dsl import component, Dataset, Model, Output
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def load_data_op(
-    X: Output[Dataset],
-    y: Output[Dataset],
+    X: Output[dsl.Dataset],
+    y: Output[dsl.Dataset],
 ):
     from mlops.components.load_data import load_data
     import pandas as pd
@@ -25,11 +25,11 @@ def load_data_op(
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def train_op(
-    X: Dataset,
-    y: Dataset,
-    model: Output[Model],
-    X_test: Output[Dataset],
-    y_test: Output[Dataset],
+    X: Input[dsl.Dataset],
+    y: Input[dsl.Dataset],
+    model: Output[dsl.Model],
+    X_test: Output[dsl.Dataset],
+    y_test: Output[dsl.Dataset],
 ):
     from mlops.components.train import train_model
     import pandas as pd
@@ -50,9 +50,9 @@ def train_op(
 # -------------------------
 @component(base_image="asif1993/mlops-training:latest")
 def evaluate_op(
-    model: Model,
-    X_test: Dataset,
-    y_test: Dataset,
+    model: Input[dsl.Model],
+    X_test: Input[dsl.Dataset],
+    y_test: Input[dsl.Dataset],
 ) -> float:
     from mlops.components.evaluate import evaluate_model
     import pandas as pd
@@ -67,35 +67,23 @@ def evaluate_op(
 
 
 # -------------------------
-# Save Model Component
-# -------------------------
-# @component(base_image="python:3.10-slim")
-# def save_model_op(model: Model) -> str:
-#    from mlops.components.save_model import save_model
-#    import joblib
-
-#    model_obj = joblib.load(model.path)
-#    model_path = save_model(model_obj)
-#    return model_path
-
-
-# -------------------------
 # Compare & Register Component
 # -------------------------
-
 @component(base_image="asif1993/mlops-training:latest")
 def compare_and_register_op(accuracy: float):
     from mlops.components.compare_and_register import compare_and_register
     compare_and_register(new_accuracy=accuracy)
 
+
 # -------------------------
-# Pipeline Definition
+# Pipeline Definition (KFP v1)
 # -------------------------
 @dsl.pipeline(
-    name="diabetes-ct-pipeline-v2",
+    name="diabetes-ct-pipeline",
     description="Continuous training with MLflow model registry",
 )
 def diabetes_pipeline():
+
     load_task = load_data_op()
 
     train_task = train_op(
@@ -103,17 +91,12 @@ def diabetes_pipeline():
         y=load_task.outputs["y"],
     )
 
-    accuracy = evaluate_op(
+    eval_task = evaluate_op(
         model=train_task.outputs["model"],
         X_test=train_task.outputs["X_test"],
         y_test=train_task.outputs["y_test"],
     )
 
-#    model_path = save_model_op(
-#        model=train_task.outputs["model"]
-#    )
-
     compare_and_register_op(
-    accuracy=accuracy.output,
- )
-
+        accuracy=eval_task.output
+    )
