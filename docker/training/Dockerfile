@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir \
     scikit-learn \
     mlflow \
     joblib \
-    kfp==2.7.0
+    kfp==1.8.22
 
 # Important: make mlops importable
 ENV PYTHONPATH=/opt/mlops
