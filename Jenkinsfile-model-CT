@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        KFP_ENDPOINT = "https://ml-pipeline-ui-apirule.c-321a6c0.stage.kyma.ondemand.com"
+        KFP_ENDPOINT = "http://ml-pipeline.kubeflow.svc.cluster.local:8888"
         KFP_TOKEN    = credentials('kubeflow-token')
     }
 
