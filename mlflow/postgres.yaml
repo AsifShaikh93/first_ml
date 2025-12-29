@@ -21,12 +21,16 @@ spec:
         envFrom:
         - secretRef:
             name: mlflow-postgres-secret
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata      
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: pgdata
       volumes:
       - name: pgdata
-        emptyDir: {}   # OK for test; use PVC if you want persistence
+        persistentVolumeClaim:
+          claimName: mlflow-pvc
 ---
 apiVersion: v1
 kind: Service
