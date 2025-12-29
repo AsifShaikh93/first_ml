@@ -29,9 +29,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
         container('python') {
           sh '''
 set -e
-mlflow pipelines run \
-  --pipeline-root mlops \
-  --profile local
+mlflow recipes run --recipe-root mlops --profile local
 '''
         }
       }
