@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-postgres
+  namespace: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow-postgres
+  template:
+    metadata:
+      labels:
+        app: mlflow-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: mlflow-postgres-secret
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: pgdata
+      volumes:
+      - name: pgdata
+        emptyDir: {}   # OK for test; use PVC if you want persistence
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-postgres
+  namespace: mlflow
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: mlflow-postgres
