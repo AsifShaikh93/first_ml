@@ -7,8 +7,8 @@ pipeline {
   }
 
   environment {
-    MLFLOW_TRACKING_URI = "https://mlflow-apirule.c-321a6c0.stage.kyma.ondemand.com"
-    MODEL_NAME = "diabetes-model"
+    MLFLOW_TRACKING_URI = "http://mlflow:5000"
+    MODEL_URI = "models:/diabetes-model/Production"
   }
 
   stages {
@@ -24,12 +24,10 @@ pip install --no-cache-dir mlflow
       }
     }
 
-    stage('Fetch MODEL_URI from MLflow') {
+stage('Verify Production Model Exists') {
       steps {
-          container('python') {
-        sh '''
-set -e
-
+        container('python') {
+          sh '''
 python3 << 'EOF'
 import mlflow
 from mlflow.tracking import MlflowClient
@@ -38,30 +36,20 @@ import os
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 client = MlflowClient()
 
-model_name = os.environ["MODEL_NAME"]
+model_name = "diabetes-model"
 
-versions = client.search_model_versions(f"name='{model_name}'")
+versions = client.search_model_versions(
+    f"name='{model_name}' and current_stage='Production'"
+)
 
 if not versions:
-    raise RuntimeError("No registered model versions found")
+    raise SystemExit("❌ No Production model found. Aborting CD.")
 
-# Pick latest version (or filter by stage if you want)
-latest = sorted(
-    versions,
-    key=lambda v: int(v.version),
-    reverse=True
-)[0]
-
-model_uri = f"models:/{model_name}/{latest.version}"
-
-print(f"Selected model URI: {model_uri}")
-
-with open("model_uri.env", "w") as f:
-    f.write(f"MODEL_URI={model_uri}")
+print(f"✅ Production model found: v{versions[0].version}")
 EOF
 '''
-          }
-       }
+        }
+      }
     }
 
     stage('Checkout Repo') {

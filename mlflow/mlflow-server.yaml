@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-server
+  namespace: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow-server
+  template:
+    metadata:
+      labels:
+        app: mlflow-server
+    spec:
+      containers:
+      - name: mlflow
+        image: asif1993/mlflow-server:2.10.2
+        ports:
+        - containerPort: 5000
+        command:
+        - /bin/sh
+        - -c
+        - |
+          mlflow server \
+            --backend-store-uri postgresql://mlflow:mlflow123@mlflow-postgres:5432/mlflow \
+            --default-artifact-root /mlflow/artifacts \
+            --host 0.0.0.0 \
+            --port 5000
+        volumeMounts:
+        - name: artifacts
+          mountPath: /mlflow/artifacts
+      volumes:
+      - name: artifacts
+        persistentVolumeClaim:
+          claimName: mlflow-artifacts-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: mlflow
+spec:
+  selector:
+    app: mlflow-server
+  ports:
+  - port: 5000
+    targetPort: 5000

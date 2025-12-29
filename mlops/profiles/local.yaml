@@ -1,0 +1,5 @@
+profile:
+  name: local
+
+variables:
+  model_name: diabetes-model

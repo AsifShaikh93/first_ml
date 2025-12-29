@@ -1,108 +1,46 @@
 pipeline {
 
-    agent {
-        kubernetes {
-            inheritFrom 'model-ct'
+  agent {
+    kubernetes {
+      inheritFrom 'model-ct'
+    }
+  }
+
+  environment {
+    // INSIDE cluster URI (best practice)
+    MLFLOW_TRACKING_URI = "http://mlflow:5000"
+    MLFLOW_EXPERIMENT_NAME = "diabetes-ct"
+  }
+
+  stages {
+
+    stage('Install Dependencies') {
+      steps {
+        container('python') {
+          sh '''
+pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
+'''
         }
+      }
     }
 
-    environment {
-        KFP_ENDPOINT = "http://ml-pipeline.kubeflow.svc.cluster.local:8888"
-        KFP_TOKEN    = credentials('kubeflow-token')
+    stage('Run MLflow Pipeline (CT)') {
+      steps {
+        container('python') {
+          sh '''
+set -e
+mlflow pipelines run \
+  --pipeline-root mlops \
+  --profile local
+'''
+        }
+      }
     }
 
-    stages {
-
-        stage('Install Dependencies') {
-            steps {
-                container('python') {
-                    sh '''
-pip install --no-cache-dir kfp==1.8.22
-'''
-                }
-            }
-        }
-
-        stage('Compile Pipeline') {
-            steps {
-                container('python') {
-                    sh '''
-python3 << 'EOF'
-from kfp import compiler
-from mlops.pipeline import diabetes_pipeline
-
-compiler.Compiler().compile(
-    pipeline_func=diabetes_pipeline,
-    package_path="diabetes_pipeline.yaml"
-)
-EOF
-'''
-                }
-            }
-        }
-
-        stage('Upload Pipeline (optional)') {
-            steps {
-                container('python') {
-                    sh '''
-curl -s -X POST \
-  "$KFP_ENDPOINT/apis/v1beta1/pipelines/upload" \
-  -H "Authorization: Bearer $KFP_TOKEN" \
-  -F "uploadfile=@diabetes_pipeline.yaml" || true
-'''
-                }
-            }
-        }
-
-        stage('Run Pipeline') {
-            steps {
-                container('python') {
-                    sh '''
-python3 << 'EOF'
-import kfp
-import os
-import sys
-
-client = kfp.Client(
-    host=os.environ["KFP_ENDPOINT"],
-    existing_token=os.environ["KFP_TOKEN"],
-    namespace="kubeflow"
-)
-
-print("Submitting pipeline run to Kubeflow...")
-
-run = client.create_run_from_pipeline_package(
-    pipeline_file="diabetes_pipeline.yaml",
-    arguments={},
-    run_name=f"diabetes-ct-run-{os.popen('date +%s').read().strip()}"
-)
-
-print(f"Run created: {run.run_id}")
-print("Waiting for training to complete...")
-
-run_detail = client.wait_for_run_completion(
-    run.run_id,
-    timeout=1200  # 20 minutes
-)
-
-status = run_detail.state.lower()
-print(f"Run finished with status: {status}")
-
-if status != "succeeded":
-    print("Pipeline run failed or was cancelled. Aborting CD trigger.")
-    sys.exit(1)
-
-print("Pipeline succeeded. Proceeding to CD.")
-EOF
-'''
-                }
-            }
-        }
-
-        stage('Trigger model-CD Pipeline') {
-            steps {
-                build job: 'first_ml_new_model_CD', wait: true
-            }
-        }
+    stage('Trigger model-CD Pipeline') {
+      steps {
+        build job: 'first_ml_new_model_CD', wait: true
+      }
     }
+  }
 }

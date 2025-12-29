@@ -11,15 +11,10 @@ RUN pip install --no-cache-dir \
     matplotlib \
     seaborn \
     numpy \
-    pydantic \
     joblib \
-    fastapi \
-    jinja2 \
-    uvicorn[standard] \
     scikit-learn \
     mlflow \
-    joblib \
-    kfp==1.8.22
+    joblib 
 
 # Important: make mlops importable
 ENV PYTHONPATH=/opt/mlops
