@@ -13,8 +13,7 @@ RUN pip install --no-cache-dir \
     numpy \
     joblib \
     scikit-learn \
-    mlflow==2.10.2 \
-    mlflow-pipelines==2.10.2 \
+    mlflow \
     joblib 
 
 # Important: make mlops importable
