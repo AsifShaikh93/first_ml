@@ -18,7 +18,7 @@ pipeline {
       steps {
         container('python') {
           sh '''
-pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
+pip install --no-cache-dir mlflow "mlflow[extras]" scikit-learn pandas numpy joblib
 '''
         }
       }
@@ -29,7 +29,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
         container('python') {
           sh '''
 set -e
-mlflow run --recipe-root mlops --profile local
+mlflow recipes run --recipe-root mlops --profile local
 '''
         }
       }
