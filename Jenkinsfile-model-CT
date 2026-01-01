@@ -28,7 +28,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
     stage('Ingest Data') {
       steps {
         container('python') {
-          sh 'mlflow run . -e ingest'
+          sh 'mlflow run . -e ingest --env-manager=local' 
         }
       }
     }
@@ -36,7 +36,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
     stage('Train Model') {
       steps {
         container('python') {
-          sh 'mlflow run . -e train'
+          sh 'mlflow run . -e train --env-manager=local'
         }
       }
     }
@@ -44,7 +44,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
     stage('Evaluate Model') {
       steps {
         container('python') {
-          sh 'mlflow run . -e evaluate'
+          sh 'mlflow run . -e evaluate --env-manager=local'
         }
       }
     }
