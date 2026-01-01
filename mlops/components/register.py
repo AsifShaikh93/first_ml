@@ -1,4 +1,5 @@
-# compare_and_register.py
+# mlops/components/evaluate.py
+
 import mlflow
 
 MODEL_NAME = "diabetes-model"
