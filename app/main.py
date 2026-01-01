@@ -6,7 +6,6 @@ from pydantic import BaseModel
 import numpy as np
 import joblib
 import os
-import requests
 import tempfile
 
 app = FastAPI()
