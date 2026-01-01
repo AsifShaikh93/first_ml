@@ -38,14 +38,13 @@ client = MlflowClient()
 
 model_name = "diabetes-model"
 
-versions = client.search_model_versions(
-    f"name='{model_name}' and current_stage='Production'"
-)
-
-if not versions:
+try:
+    mv = client.get_model_version_by_alias(model_name, "Production")
+except Exception:
     raise SystemExit("❌ No Production model found. Aborting CD.")
 
-print(f"✅ Production model found: v{versions[0].version}")
+print(f"✅ Production model found: v{mv.version}")
+
 EOF
 '''
         }
