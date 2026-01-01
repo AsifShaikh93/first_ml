@@ -7,7 +7,6 @@ pipeline {
   }
 
   environment {
-    // INSIDE cluster URI (best practice)
     MLFLOW_TRACKING_URI = "http://mlflow:5000"
     MLFLOW_EXPERIMENT_NAME = "diabetes-ct"
   }
@@ -18,18 +17,44 @@ pipeline {
       steps {
         container('python') {
           sh '''
-pip install --no-cache-dir mlflow "mlflow[extras]" scikit-learn pandas numpy joblib
+set -e
+pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
 '''
         }
       }
     }
 
-    stage('Run MLflow Pipeline (CT)') {
+    stage('Ingest Data') {
+      steps {
+        container('python') {
+          sh 'mlflow run . -e ingest'
+        }
+      }
+    }
+
+    stage('Train Model') {
+      steps {
+        container('python') {
+          sh 'mlflow run . -e train'
+        }
+      }
+    }
+
+    stage('Evaluate Model') {
+      steps {
+        container('python') {
+          sh 'mlflow run . -e evaluate'
+        }
+      }
+    }
+
+    stage('Register Model') {
       steps {
         container('python') {
           sh '''
 set -e
-mlflow recipes run --recipe-root mlops --profile local
+mlflow run . -e register | tee register.out
+grep "MODEL_URI=" register.out | cut -d= -f2 > model_uri.txt
 '''
         }
       }
@@ -37,7 +62,11 @@ mlflow recipes run --recipe-root mlops --profile local
 
     stage('Trigger model-CD Pipeline') {
       steps {
-        build job: 'first_ml_new_model_CD', wait: true
+        build job: 'first_ml_new_model_CD',
+              parameters: [
+                string(name: 'MODEL_URI', value: readFile('model_uri.txt').trim())
+              ],
+              wait: true
       }
     }
   }
