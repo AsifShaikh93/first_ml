@@ -50,10 +50,16 @@ mlflow run . -e train --env-manager=local
               returnStdout: true
             ).trim()
 
-            env.TRAIN_RUN_ID = output
-              .readLines()
+            def line = output
+          .readLines()
+          .find { it.startsWith("TRAIN_RUN_ID=") }
 
-            echo "Captured TRAIN_RUN_ID=${env.TRAIN_RUN_ID}"
+          if (!line) {
+            error("TRAIN_RUN_ID not found in train output")
+          }
+
+          env.TRAIN_RUN_ID = line.split("=")[1]
+          echo "Captured TRAIN_RUN_ID=${env.TRAIN_RUN_ID}"
           }
         }
       }

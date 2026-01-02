@@ -13,4 +13,4 @@ def train():
         mlflow.log_artifact("X_test.pkl")
         mlflow.log_artifact("y_test.pkl")
         
-        print(f"{run.info.run_id}")
+        print(f"TRAIN_RUN_ID={run.info.run_id}")
