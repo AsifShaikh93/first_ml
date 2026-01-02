@@ -16,6 +16,9 @@ spec:
       containers:
       - name: mlflow
         image: asif1993/mlflow-server:v3.8.1
+        env:
+        - name: MLFLOW_SERVER_ALLOWED_HOSTS
+          value: "*" 
         ports:
         - containerPort: 5000
         command:
