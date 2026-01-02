@@ -68,11 +68,10 @@ mlflow run . -e train --env-manager=local
     stage('Evaluate Model') {
       steps {
         container('python') {
-          sh '''
-#!/bin/bash          
+          sh '''        
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e evaluate --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID}
+mlflow run . -e evaluate --env-manager=local -P train_run_id=$TRAIN_RUN_ID
 '''
         }
       }
@@ -81,11 +80,10 @@ mlflow run . -e evaluate --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID}
     stage('Register Model') {
       steps {
         container('python') {
-          sh '''
-#!/bin/bash          
+          sh '''       
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e register --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID} | tee register.out
+mlflow run . -e register --env-manager=local -P train_run_id=$TRAIN_RUN_ID | tee register.out
 grep "MODEL_URI=" register.out | cut -d= -f2 > model_uri.txt
 '''
         }
