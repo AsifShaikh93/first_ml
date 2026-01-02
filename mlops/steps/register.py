@@ -2,24 +2,22 @@
 
 import mlflow
 from mlflow.tracking import MlflowClient
+import sys
+
+train_run_id = sys.argv[1]
 
 MODEL_NAME = "diabetes-model"
 
-def register():
+def register(train_run_id: str):
     client = MlflowClient()
-    run = mlflow.active_run()
 
-    model_uri = f"runs:/{run.info.run_id}/model"
+    model_uri = f"runs:/{train_run_id}/model"
+    result = mlflow.register_model(model_uri, MODEL_NAME)
 
-    result = mlflow.register_model(
-        model_uri=model_uri,
-        name=MODEL_NAME
-    )
-
-    client.transition_model_version_stage(
+    client.set_registered_model_alias(
         name=MODEL_NAME,
-        version=result.version,
-        stage="Production"
+        alias="Production",
+        version=result.version
     )
 
-    print(f"Model {MODEL_NAME} v{result.version} promoted to Production")
+    print(f"MODEL_URI=models:/{MODEL_NAME}/Production")

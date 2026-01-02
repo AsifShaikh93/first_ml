@@ -6,3 +6,5 @@ def ingest():
 
     with mlflow.start_run(run_name="ingest"):
         mlflow.log_param("rows", len(X))
+
+        

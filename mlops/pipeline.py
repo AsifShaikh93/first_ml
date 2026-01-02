@@ -8,7 +8,11 @@ entry_points:
     command: "python mlops/steps/train.py"
 
   evaluate:
-    command: "python mlops/steps/evaluate.py"
+    parameters: 
+      train_run_id: {type: string}
+    command: "python mlops/steps/evaluate.py {train_run_id}"
 
   register:
-    command: "python mlops/steps/register.py"
+    parameters: 
+      train_run_id: {type: string}
+    command: "python mlops/steps/register.py {train_run_id}"
