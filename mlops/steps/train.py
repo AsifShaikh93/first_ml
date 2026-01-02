@@ -18,14 +18,10 @@ def train():
         y=joblib.load("y.pkl")
         model, X_test, y_test = train_model(X,y)
 
-        os.makedirs("artifacts", exist_ok=True)
-        joblib.dump(model, "artifacts/model.pkl")
+        mlflow.sklearn.log_model(model, "model")
 
-        mlflow.pyfunc.log_model(
-            artifact_path="model",
-            python_model=SklearnWrapper(),
-            artifacts={"model": "artifacts/model.pkl"}
-        )
+        joblib.dump(model, "model/model.pkl")
+        mlflow.log_artifacts("model", artifact_path="model")
         
         print(f"TRAIN_RUN_ID={run.info.run_id}")
 
