@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: mlflow
-        image: asif1993/mlflow-server:2.10.2
+        image: asif1993/mlflow-server:v3.8.1
         ports:
         - containerPort: 5000
         command:
