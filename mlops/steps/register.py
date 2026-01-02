@@ -21,3 +21,6 @@ def register(train_run_id: str):
     )
 
     print(f"MODEL_URI=models:/{MODEL_NAME}/Production")
+
+if __name__ == "__main__":
+    register(train_run_id)

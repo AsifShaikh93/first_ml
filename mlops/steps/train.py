@@ -14,3 +14,6 @@ def train():
         mlflow.log_artifact("y_test.pkl")
         
         print(f"TRAIN_RUN_ID={run.info.run_id}")
+
+if __name__ == "__main__":
+    train()        

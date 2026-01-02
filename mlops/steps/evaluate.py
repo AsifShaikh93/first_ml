@@ -20,4 +20,7 @@ def evaluate(train_run_id: str):
         mlflow.log_metric("accuracy", accuracy)
 
         print(f"EVAL_ACCURACY={accuracy}")
+
+if __name__ == "__main__":
+    evaluate(train_run_id)        
         
