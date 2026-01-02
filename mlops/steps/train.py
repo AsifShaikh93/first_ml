@@ -1,10 +1,12 @@
 import mlflow
 import joblib
 from mlops.components.train import train_model
+from mlops.steps.ingest import ingest
 
 def train():
     with mlflow.start_run(run_name="train") as run:
-        model, X_test, y_test = train_model()
+        X,y=ingest()
+        model, X_test, y_test = train_model(X,y)
 
         mlflow.sklearn.log_model(model, "model")
         joblib.dump(X_test, "X_test.pkl")
