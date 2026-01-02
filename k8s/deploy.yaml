@@ -1,38 +1,28 @@
-iapiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: diabetes-api-ml
   labels:
     app: diabetes-api-ml
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: diabetes-api-ml
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 0      
   template:
     metadata:
       labels:
         app: diabetes-api-ml
     spec:
-      terminationGracePeriodSeconds: 5
       containers:
       - name: diabetes-api
-        image: asif1993/second_ml:e5a2f237
+        image: asif1993/second_ml:6312a82
         ports:
         - containerPort: 8000
         imagePullPolicy: IfNotPresent
-        volumeMounts:                   # <--- added
-        - name: diabetes-model-volume
-          mountPath: /mnt/models
-      volumes:                          # <--- added
-      - name: diabetes-model-volume
-        persistentVolumeClaim:
-          claimName: diabetes-model-pvc  
+        env:
+        - name: MODEL_URI
+          value: "models:/diabetes-model/Production"
 ---
 apiVersion: v1
 kind: Service
