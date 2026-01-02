@@ -3,13 +3,6 @@ import joblib
 from mlops.components.train import train_model
 import os
 
-class SklearnWrapper(mlflow.pyfunc.PythonModel):
-    def load_context(self, context):
-        self.model = joblib.load(context.artifacts["model"])
-
-    def predict(self, context, model_input):
-        return self.model.predict(model_input)
-
 def train():
      
     with mlflow.start_run(run_name="train") as run:
@@ -17,7 +10,8 @@ def train():
         X=joblib.load ("X.pkl")
         y=joblib.load("y.pkl")
         model, X_test, y_test = train_model(X,y)
-
+        
+        os.make_dir("model", exists_ok: True)
         mlflow.sklearn.log_model(model, "model")
 
         joblib.dump(model, "model/model.pkl")
