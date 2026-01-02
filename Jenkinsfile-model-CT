@@ -69,6 +69,7 @@ mlflow run . -e train --env-manager=local
       steps {
         container('python') {
           sh '''
+#!/bin/bash          
 set -e
 export PYTHONPATH=$PWD
 mlflow run . -e evaluate --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID}
@@ -81,6 +82,7 @@ mlflow run . -e evaluate --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID}
       steps {
         container('python') {
           sh '''
+#!/bin/bash          
 set -e
 export PYTHONPATH=$PWD
 mlflow run . -e register --env-manager=local -P train_run_id=${env.TRAIN_RUN_ID} | tee register.out
