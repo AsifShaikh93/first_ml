@@ -52,8 +52,6 @@ mlflow run . -e train --env-manager=local
 
             env.TRAIN_RUN_ID = output
               .readLines()
-              .find { it.startsWith("TRAIN_RUN_ID=") }
-              .split("=")[1]
 
             echo "Captured TRAIN_RUN_ID=${env.TRAIN_RUN_ID}"
           }
