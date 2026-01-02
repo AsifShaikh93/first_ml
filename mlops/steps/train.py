@@ -11,7 +11,7 @@ def train():
         y=joblib.load("y.pkl")
         model, X_test, y_test = train_model(X,y)
         
-        os.makedirs("model", exists_ok= True)
+        os.makedirs("model", exist_ok= True)
         mlflow.sklearn.log_model(model, "model")
 
         joblib.dump(model, "model/model.pkl")
