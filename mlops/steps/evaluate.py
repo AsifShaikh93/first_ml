@@ -5,7 +5,7 @@ import joblib
 from sklearn.metrics import accuracy_score
 import sys
 
-train_run_id = sys.argv[1]
+train_run_id = sys.argv[2]
 
 def evaluate(train_run_id: str):
     with mlflow.start_run(run_name="evaluate", nested=True):

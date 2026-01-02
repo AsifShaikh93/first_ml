@@ -4,7 +4,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 import sys
 
-train_run_id = sys.argv[1]
+train_run_id = sys.argv[2]
 
 MODEL_NAME = "diabetes-model"
 
