@@ -14,6 +14,9 @@ def train():
         os.makedirs("model", exist_ok= True)
         mlflow.sklearn.log_model(model, "model")
 
+        joblib.dump("X_test", X_test.pkl)
+        joblib.dump("y_test", y_test.pkl)
+
         joblib.dump(model, "model/model.pkl")
         mlflow.log_artifacts("model", artifact_path="model")
         
