@@ -40,9 +40,6 @@ class DiabetesInput(BaseModel):
     Age: int
 
 
-
-
-
 def load_model_if_changed():
     global model, current_version
 
@@ -57,6 +54,17 @@ def load_model_if_changed():
             model = new_model
             current_version = mv.version
             print("[model] Model swapped successfully")
+
+@app.on_event("startup")
+def startup():
+    load_model_if_changed()
+
+    def refresher():
+        while True:
+            time.sleep(60)   # check every 60 seconds
+            load_model_if_changed()
+
+    threading.Thread(target=refresher, daemon=True).start()            
 
 
 @app.get("/", response_class=HTMLResponse)
