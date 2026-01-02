@@ -64,7 +64,7 @@ EOF
           container('python') {
         sh '''
 set -e
-source model_uri.env
+source MODEL_URI.env
 
 git config user.name "jenkins-bot"
 git config user.email "jenkins@company.com"
