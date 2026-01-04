@@ -1,5 +1,6 @@
 pandas
 matplotlib
+argparse
 seaborn
 numpy
 pydantic

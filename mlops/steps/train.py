@@ -12,8 +12,7 @@ def train():
         model, X_test, y_test = train_model(X,y)
         
         os.makedirs("model", exist_ok= True)
-        mlflow.sklearn.log_model(model, "model")
-
+        mlflow.sklearn.log_model(sk_model=model,name="model")
         joblib.dump(X_test, "X_test.pkl")
         joblib.dump(y_test, "y_test.pkl")
 

@@ -1,10 +1,7 @@
 # mlops/steps/register.py
-
+import argparse
 import mlflow
 from mlflow.tracking import MlflowClient
-import sys
-
-train_run_id = sys.argv[2]
 
 MODEL_NAME = "diabetes-model"
 
@@ -23,4 +20,8 @@ def register(train_run_id: str):
     print(f"MODEL_URI=models:/{MODEL_NAME}/Production")
 
 if __name__ == "__main__":
-    register(train_run_id)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_run_id", required=True)
+    args = parser.parse_args()
+
+    register(args.train_run_id)
