@@ -16,7 +16,9 @@ def train(train_run_id: str):
         y_pred = model.predict(X_test)
         mlflow.log_metrics({"mse": mean_squared_error(y_test, y_pred)})
 
-        mlflow.sklearn.log_model(model, name="model", registered_model_name="diabetes-model")
+        signature = infer_signature(X_test, model.predict(X_test))
+
+        mlflow.sklearn.log_model(model, name="model", registered_model_name="diabetes-model", signature=signature)
 
         # Optional: log test data as artifacts (fine)
         joblib.dump(X_test, "X_test.pkl")
