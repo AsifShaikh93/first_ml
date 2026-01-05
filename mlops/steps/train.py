@@ -16,7 +16,7 @@ def train(train_run_id: str):
         y_pred = model.predict(X_test)
         mlflow.log_metrics({"mse": mean_squared_error(y_test, y_pred)})
 
-        mlflow.sklearn.log_model(sk_model=model, artifact_path="model")
+        mlflow.sklearn.log_model(model, artifact_path="model")
 
         # Optional: log test data as artifacts (fine)
         joblib.dump(X_test, "X_test.pkl")
