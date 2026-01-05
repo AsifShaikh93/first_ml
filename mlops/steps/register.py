@@ -6,7 +6,7 @@ from mlflow.tracking import MlflowClient
 MODEL_NAME = "diabetes-model"
 
 def register(train_run_id: str):
-    with mlflow.start_run(run_name="ingest"):
+    with mlflow.start_run(run_id=train_run_id):
 
         client = MlflowClient()
 

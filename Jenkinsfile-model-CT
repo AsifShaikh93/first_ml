@@ -33,7 +33,7 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib argparse
               script: '''
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e ingest --env-manager=local
+python mlops/steps/ingest.py
 ''',
               returnStdout: true
             ).trim()
@@ -59,7 +59,7 @@ mlflow run . -e ingest --env-manager=local
           sh '''        
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e train --env-manager=local -P train_run_id=$TRAIN_RUN_ID
+python mlops/steps/train.py --train_run_id=$TRAIN_RUN_ID
 '''
         }
       }
@@ -71,7 +71,7 @@ mlflow run . -e train --env-manager=local -P train_run_id=$TRAIN_RUN_ID
           sh '''        
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e evaluate --env-manager=local -P train_run_id=$TRAIN_RUN_ID
+python mlops/steps/evaluate.py --train_run_id=$TRAIN_RUN_ID
 '''
         }
       }
@@ -83,7 +83,7 @@ mlflow run . -e evaluate --env-manager=local -P train_run_id=$TRAIN_RUN_ID
           sh '''       
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e register --env-manager=local -P train_run_id=$TRAIN_RUN_ID | tee register.out
+python mlops/steps/register.py --train_run_id=$TRAIN_RUN_ID | tee register.out
 grep "MODEL_URI=" register.out | cut -d= -f2 > model_uri.txt
 '''
         }

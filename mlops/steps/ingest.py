@@ -6,7 +6,7 @@ import argparse
 def ingest():
     X, y, DATA_URL, FEATURE_COLUMNS, TARGET_COLUMN = load_data()
 
-    with mlflow.start_run(run_name="ingest", nested=True) as run:
+    with mlflow.start_run(run_name="ingest") as run:
         mlflow.log_param("rows", len(X))
         mlflow.log_param("DATA_URL", DATA_URL)
         mlflow.log_param("FEATURE_COLUMNS", FEATURE_COLUMNS)

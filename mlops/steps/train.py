@@ -5,7 +5,7 @@ from mlops.components.train import train_model
 from sklearn.metrics import mean_squared_error
 
 def train(train_run_id: str):
-    with mlflow.start_run(run_name="ingest"):
+    with mlflow.start_run(run_id=train_run_id):
         X = joblib.load("X.pkl")
         y = joblib.load("y.pkl")
 
@@ -23,8 +23,10 @@ def train(train_run_id: str):
         # Optional: log test data as artifacts (fine)
         joblib.dump(X_test, "X_test.pkl")
         joblib.dump(y_test, "y_test.pkl")
+        joblib.dump(model, "model.pkl")
         mlflow.log_artifact("X_test.pkl")
         mlflow.log_artifact("y_test.pkl")
+        mlflow.log_artifact("model.pkl")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
