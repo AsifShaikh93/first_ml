@@ -28,24 +28,12 @@ pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
     stage('Ingest Data') {
       steps {
         container('python') {
-          sh '''
-set -e  
-export PYTHONPATH=$PWD        
-mlflow run . -e ingest --env-manager=local
-''' 
-        }
-      }
-    }
-
-    stage('Train Model') {
-      steps {
-        container('python') {
           script {
             def output = sh(
               script: '''
 set -e
 export PYTHONPATH=$PWD
-mlflow run . -e train --env-manager=local
+mlflow run . -e ingest --env-manager=local
 ''',
               returnStdout: true
             ).trim()
@@ -61,6 +49,18 @@ mlflow run . -e train --env-manager=local
           env.TRAIN_RUN_ID = line.split("=")[1]
           echo "Captured TRAIN_RUN_ID=${env.TRAIN_RUN_ID}"
           }
+        }
+      }
+    }
+
+    stage('Train Model') {
+      steps {
+        container('python') {
+          sh '''        
+set -e
+export PYTHONPATH=$PWD
+mlflow run . -e train --env-manager=local -P train_run_id=$TRAIN_RUN_ID
+'''
         }
       }
     }
@@ -87,16 +87,6 @@ mlflow run . -e register --env-manager=local -P train_run_id=$TRAIN_RUN_ID | tee
 grep "MODEL_URI=" register.out | cut -d= -f2 > model_uri.txt
 '''
         }
-      }
-    }
-
-    stage('Trigger model-CD Pipeline') {
-      steps {
-        build job: 'first_ml_new_model_CD',
-              parameters: [
-                string(name: 'MODEL_URI', value: readFile('model_uri.txt').trim())
-              ],
-              wait: true
       }
     }
   }

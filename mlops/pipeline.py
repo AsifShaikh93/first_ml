@@ -5,7 +5,9 @@ entry_points:
     command: "python mlops/steps/ingest.py"
 
   train:
-    command: "python mlops/steps/train.py"
+    parameters: 
+      train_run_id: {type: string}
+    command: "python mlops/steps/train.py {train_run_id}"
 
   evaluate:
     parameters: 

@@ -5,10 +5,8 @@ import joblib
 from sklearn.metrics import accuracy_score
 import sys
 
-train_run_id = sys.argv[2]
-
 def evaluate(train_run_id: str):
-    with mlflow.start_run(run_name="evaluate", nested=True):
+    with mlflow.start_run(run_id=train_run_id):
 
         model_uri = f"runs:/{train_run_id}/model"
         model = mlflow.sklearn.load_model(model_uri)
@@ -22,5 +20,8 @@ def evaluate(train_run_id: str):
         print(f"EVAL_ACCURACY={accuracy}")
 
 if __name__ == "__main__":
-    evaluate(train_run_id)        
-        
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_run_id", required=True)
+    args = parser.parse_args()
+
+    evaluate(args.train_run_id)

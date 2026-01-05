@@ -14,5 +14,5 @@ def load_data():
     X = df[FEATURE_COLUMNS]
     y = df[TARGET_COLUMN]
 
-    return X, y
+    return X, y, DATA_URL, FEATURE_COLUMNS, TARGET_COLUMN
 
