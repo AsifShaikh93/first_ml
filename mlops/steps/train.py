@@ -3,6 +3,7 @@ import joblib
 import argparse
 from mlops.components.train import train_model
 from sklearn.metrics import mean_squared_error
+from mlflow.models import infer_signature
 
 def train(train_run_id: str):
     with mlflow.start_run(run_id=train_run_id):
