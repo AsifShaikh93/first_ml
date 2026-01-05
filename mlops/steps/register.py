@@ -21,6 +21,8 @@ def register(train_run_id: str):
 
         print(f"MODEL_URI=models:/{MODEL_NAME}/Production")
 
+        mlflow.end_run()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_run_id", required=True)
