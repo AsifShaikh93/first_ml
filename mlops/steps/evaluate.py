@@ -10,7 +10,7 @@ def evaluate(train_run_id: str):
     with mlflow.start_run(run_id=train_run_id):
 
         model_uri = f"runs:/{train_run_id}/model"
-        model = mlflow.sklearn.load_model("models:/diabetes-model/Production")
+        model = mlflow.sklearn.load_model("model_uri")
 
         X_test = joblib.load("X_test.pkl")
         y_test = joblib.load("y_test.pkl")

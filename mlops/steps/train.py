@@ -19,7 +19,7 @@ def train(train_run_id: str):
 
         signature = infer_signature(X_test, model.predict(X_test))
 
-        mlflow.sklearn.log_model(model, name="model", registered_model_name="diabetes-model", signature=signature)
+        mlflow.sklearn.log_model(model, name="model", signature=signature)
 
         # Optional: log test data as artifacts (fine)
         joblib.dump(X_test, "X_test.pkl")
