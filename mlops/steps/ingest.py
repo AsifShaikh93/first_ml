@@ -1,6 +1,7 @@
 import mlflow
 from mlops.components.load_data import load_data
 import joblib
+import argparse
 
 def ingest():
     X, y, DATA_URL, FEATURE_COLUMNS, TARGET_COLUMN = load_data()

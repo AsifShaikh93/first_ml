@@ -1,5 +1,6 @@
 import mlflow
 import joblib
+import argparse
 from mlops.components.train import train_model
 from sklearn.metrics import mean_squared_error
 
@@ -14,7 +15,6 @@ def train(train_run_id: str):
         y_pred = model.predict(X_test)
         mlflow.log_metrics({"mse": mean_squared_error(y_test, y_pred)})
 
-        # ✅ ONLY this for model logging
         mlflow.sklearn.log_model(
             sk_model=model,
             name="model"

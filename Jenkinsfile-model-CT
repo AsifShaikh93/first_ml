@@ -19,7 +19,7 @@ pipeline {
         container('python') {
           sh '''
 set -e
-pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib
+pip install --no-cache-dir mlflow scikit-learn pandas numpy joblib argparse
 '''
         }
       }
