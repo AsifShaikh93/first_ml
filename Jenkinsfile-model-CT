@@ -77,17 +77,6 @@ python mlops/steps/evaluate.py --train_run_id=$TRAIN_RUN_ID
       }
     }
 
-    stage('Register Model') {
-      steps {
-        container('python') {
-          sh '''       
-set -e
-export PYTHONPATH=$PWD
-python mlops/steps/register.py --train_run_id=$TRAIN_RUN_ID | tee register.out
-grep "MODEL_URI=" register.out | cut -d= -f2 > model_uri.txt
-'''
-        }
-      }
-    }
+    
   }
 }
