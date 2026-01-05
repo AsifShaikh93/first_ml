@@ -16,18 +16,15 @@ def train(train_run_id: str):
         y_pred = model.predict(X_test)
         mlflow.log_metrics({"mse": mean_squared_error(y_test, y_pred)})
 
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="model"
-        )
+        # mlflow.sklearn.log_model(sk_model=model,artifact_path="model")
 
         # Optional: log test data as artifacts (fine)
         joblib.dump(X_test, "X_test.pkl")
         joblib.dump(y_test, "y_test.pkl")
-        # joblib.dump(model, "model.pkl")
+        joblib.dump(model, "model.pkl")
         mlflow.log_artifact("X_test.pkl")
         mlflow.log_artifact("y_test.pkl")
-        # mlflow.log_artifact("model.pkl", artifact_path="model")
+        mlflow.log_artifact("model.pkl", artifact_path="model")
         print("Artifacts:", mlflow.artifacts.list_artifacts(run_id=train_run_id))
 
 if __name__ == "__main__":
