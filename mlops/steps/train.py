@@ -7,7 +7,8 @@ def train():
         X = joblib.load("X.pkl")
         y = joblib.load("y.pkl")
 
-        model, X_test, y_test = train_model(X, y)
+        model, X_test, y_test, param = train_model(X, y)
+        mlflow.log_params(params)
 
         # ✅ ONLY this for model logging
         mlflow.sklearn.log_model(
