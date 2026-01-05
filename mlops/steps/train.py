@@ -5,7 +5,7 @@ from mlops.components.train import train_model
 from sklearn.metrics import mean_squared_error
 
 def train(train_run_id: str):
-    with mlflow.start_run(run_id=train_run_id):
+    with mlflow.start_run(run_name="ingest"):
         X = joblib.load("X.pkl")
         y = joblib.load("y.pkl")
 
