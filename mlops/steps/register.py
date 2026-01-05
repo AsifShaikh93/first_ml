@@ -9,7 +9,8 @@ def register(train_run_id: str):
     with mlflow.start_run(run_id=train_run_id):
 
         client = MlflowClient()
-        model_uri = f"runs:/{train_run_id}/model"
+        print(mlflow.active_run().info.run_id)
+        model_uri = f"models:/m-{mlflow.active_run().info.run_id}"
         result = mlflow.register_model(model_uri, MODEL_NAME)
 
         client.set_registered_model_alias(
