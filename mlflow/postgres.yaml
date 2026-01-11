@@ -30,7 +30,7 @@ spec:
       volumes:
       - name: pgdata
         persistentVolumeClaim:
-          claimName: mlflow-pvc
+          claimName: shared-pvc
 ---
 apiVersion: v1
 kind: Service
