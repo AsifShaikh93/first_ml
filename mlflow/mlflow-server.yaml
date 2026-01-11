@@ -36,7 +36,7 @@ spec:
       volumes:
       - name: artifacts
         persistentVolumeClaim:
-          claimName: mlflow-artifacts-pvc
+          claimName: shared-pvc
 
 ---
 apiVersion: v1

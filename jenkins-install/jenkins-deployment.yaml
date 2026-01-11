@@ -20,9 +20,6 @@ spec:
           image: jenkins/jenkins:lts
           ports:
             - containerPort: 8080
-          volumeMounts:
-            - name: jenkins-home
-              mountPath: /var/jenkins_home
           resources:
             requests:
               cpu: "250m"
@@ -30,8 +27,16 @@ spec:
             limits:
               cpu: "1"
               memory: "1Gi"
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home    
+            - name: mlflow-shared
+              mountPath: /shared/mlflow  
       volumes:
         - name: jenkins-home
           persistentVolumeClaim:
-            claimName: jenkins-pvc
+            claimName: shared-pvc
+        - name: mlflow-shared
+          persistentVolumeClaim:
+            claimName: shared-pvc    
 
